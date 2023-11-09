@@ -1,0 +1,51 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "5.2",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "SophiasFault",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"UMG",
+				"Engine"
+			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "ModelingToolsEditorMode",
+			"Enabled": true,
+			"TargetAllowList": [
+				"Editor"
+			]
+		},
+		{
+			"Name": "MetaHuman",
+			"Enabled": false
+		},
+		{
+			"Name": "LiveLinkControlRig",
+			"Enabled": true
+		},
+		{
+			"Name": "AppleARKitFaceSupport",
+			"Enabled": true,
+			"SupportedTargetPlatforms": [
+				"IOS",
+				"Win64",
+				"Mac"
+			]
+		},
+		{
+			"Name": "HairStrands",
+			"Enabled": true
+		},
+		{
+			"Name": "RigLogic",
+			"Enabled": true
+		}
+	]
+}
