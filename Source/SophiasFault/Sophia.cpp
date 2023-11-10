@@ -20,10 +20,18 @@ ASophia::ASophia()
 	}
 
 	_myGameState = GetWorld() != nullptr ? GetWorld()->GetGameState<AGMS_MyGameStateBase>() : nullptr;
-	_stamina = 0.f;
-	_staminaCooldown = 5.f;
-	_staminaWasted = false;
+
+	// Init of STAMINA variables
+	_runningOrCrouching = false;
+	_staminaTimer = 0.f;
+	_staminaMax = 5.f;
 	_staminaStatus = IDLE;
+
+	// Init of FLASHLIGHT variables
+	_rechargingFlashlight = false;
+	_flashlightTimer = 0.f;
+	_flashlightMax = 10.f;
+	_flashlightStatus = LIGHTOFF;
 }
 
 void ASophia::BeginPlay()
@@ -35,41 +43,58 @@ void ASophia::BeginPlay()
 			Subsystem->AddMappingContext(_defaultMappingContext, 0);
 		}
 	}
-
-	printFloat(_staminaCooldown);
 }
 
 void ASophia::Tick(float deltaTime)
 {
 	Super::Tick(deltaTime);
 
-
+	// STAMINA
 	switch (_staminaStatus) {
 	case RUNNING:
-		printText("RUNNING");
+		//printText("RUNNING");
 		if (_runningOrCrouching) {
-			if (_stamina < _staminaCooldown) 
-				_stamina += deltaTime;
-		
-			printFloat(_stamina);
+			if (_myGameState->_onChase) {
+				_speed = 1.f;
+			} else {
+				_speed = 0.25f;
+			}
 
-			if (_stamina > _staminaCooldown)
+			if (_staminaTimer < _staminaMax) {
+				_staminaTimer += deltaTime;
+			} else {
 				_staminaStatus = EXHAUSTED;
+				_speed = 0.5f;
+				printFloat(_speed);
+			}
 		} else {
 			_staminaStatus = IDLE;
+			_speed = 0.5f;
 		}
 		break;
 	case EXHAUSTED:
-		printText("EXHAUSTED");
+		//printText("EXHAUSTED");
 		_runningOrCrouching = false;
-		_stamina -= deltaTime;
-		if (_stamina < 0.f)
+		_staminaTimer -= deltaTime;
+		if (_staminaTimer < 0.f)
 			_staminaStatus = IDLE;
 		break;
 	case IDLE:
 		//printText("IDLE");
 		if (_runningOrCrouching)
 			_staminaStatus = RUNNING;
+		break;
+	default:
+		break;
+	}
+
+	// FLASHLIGHT
+	switch (_flashlightStatus) {
+	case LIGHTON:
+		break;
+	case LIGHTOFF:
+		break;
+	case NEEDRECHARGE:
 		break;
 	default:
 		break;
@@ -85,6 +110,7 @@ void ASophia::SetupPlayerInputComponent(UInputComponent* playerInputComponent)
 		EnhancedInputComponent->BindAction(_lookAction, ETriggerEvent::Triggered, this, &ASophia::Look);
 		EnhancedInputComponent->BindAction(_runOrCrouchAction, ETriggerEvent::Triggered, this, &ASophia::RunOrCrouch);
 		EnhancedInputComponent->BindAction(_flashlightAction, ETriggerEvent::Triggered, this, &ASophia::Flashlight);
+		EnhancedInputComponent->BindAction(_rechargeFlashlightAction, ETriggerEvent::Triggered, this, &ASophia::RechargeFlashlight);
 		EnhancedInputComponent->BindAction(_inventoryAction, ETriggerEvent::Triggered, this, &ASophia::Inventory);
 	}
 }
@@ -112,16 +138,6 @@ void ASophia::Look(const FInputActionValue& value)
 void ASophia::RunOrCrouch(const FInputActionValue& value) 
 {
 	_runningOrCrouching = value.Get<bool>();
-
-	if (_runningOrCrouching) {
-		if (_myGameState->_onChase) {
-			_speed = 1.f;
-		} else {
-			_speed = 0.25f;
-		}
-	} else {
-		_speed = 0.5f;
-	}
 }
 
 void ASophia::Flashlight(const FInputActionValue& value) 
@@ -137,6 +153,11 @@ void ASophia::Flashlight(const FInputActionValue& value)
 			flashlight->ToggleVisibility(false);
 		}
 	}
+}
+
+void ASophia::RechargeFlashlight(const FInputActionValue& value)
+{
+	_rechargingFlashlight = value.Get<bool>();
 }
 
 void ASophia::Inventory(const FInputActionValue& value)
