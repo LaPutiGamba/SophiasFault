@@ -2,5 +2,5 @@
 
 AGMS_MyGameStateBase::AGMS_MyGameStateBase()
 {
-	_onChase = false;
+	_onChase = true;
 }
