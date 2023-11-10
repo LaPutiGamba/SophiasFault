@@ -52,7 +52,6 @@ void ASophia::Tick(float deltaTime)
 	// STAMINA
 	switch (_staminaStatus) {
 	case RUNNING:
-		//printText("RUNNING");
 		if (_runningOrCrouching) {
 			if (_myGameState->_onChase) {
 				_speed = 1.f;
@@ -73,14 +72,15 @@ void ASophia::Tick(float deltaTime)
 		}
 		break;
 	case EXHAUSTED:
-		//printText("EXHAUSTED");
-		_runningOrCrouching = false;
+		if (_runningOrCrouching && _staminaTimer < (_staminaMax / 2))
+			_staminaStatus = RUNNING;
+
 		_staminaTimer -= deltaTime;
+
 		if (_staminaTimer < 0.f)
 			_staminaStatus = IDLE;
 		break;
 	case IDLE:
-		//printText("IDLE");
 		if (_runningOrCrouching)
 			_staminaStatus = RUNNING;
 		break;
