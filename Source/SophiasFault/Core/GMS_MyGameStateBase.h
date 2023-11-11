@@ -15,5 +15,7 @@ class SOPHIASFAULT_API AGMS_MyGameStateBase : public AGameStateBase
 public:
 	AGMS_MyGameStateBase();
 
+	virtual void BeginPlay() override;
+
 	bool _onChase;
 };
