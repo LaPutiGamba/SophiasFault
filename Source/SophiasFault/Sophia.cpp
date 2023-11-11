@@ -1,7 +1,7 @@
 #include "Sophia.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "GMS_MyGameStateBase.h"
+#include "Core/GMS_MyGameStateBase.h"
 #include "Inventory/Items/Item.h"
 #include "Inventory/InventoryComponent.h"
 #include "Inventory/InventoryWidget.h"
@@ -28,6 +28,8 @@ ASophia::ASophia()
 	_staminaStatus = IDLE;
 
 	// Init of FLASHLIGHT variables
+	_flashlight = nullptr;
+	_flashlightOn = false;
 	_rechargingFlashlight = false;
 	_flashlightTimer = 0.f;
 	_flashlightMax = 10.f;
@@ -43,6 +45,9 @@ void ASophia::BeginPlay()
 			Subsystem->AddMappingContext(_defaultMappingContext, 0);
 		}
 	}
+
+	_flashlight = ASophia::GetComponentByClass<USpotLightComponent>();
+	_flashlight->ToggleVisibility(false);
 }
 
 void ASophia::Tick(float deltaTime)
@@ -52,35 +57,34 @@ void ASophia::Tick(float deltaTime)
 	// STAMINA
 	switch (_staminaStatus) {
 	case RUNNING:
-		//printText("RUNNING");
 		if (_runningOrCrouching) {
 			if (_myGameState->_onChase) {
 				_speed = 1.f;
-			} else {
+			}
+			else {
 				_speed = 0.25f;
 			}
 
 			if (_staminaTimer < _staminaMax) {
 				_staminaTimer += deltaTime;
-			} else {
+			}
+			else {
 				_staminaStatus = EXHAUSTED;
 				_speed = 0.5f;
-				printFloat(_speed);
 			}
-		} else {
+		}
+		else {
 			_staminaStatus = IDLE;
 			_speed = 0.5f;
 		}
 		break;
 	case EXHAUSTED:
-		//printText("EXHAUSTED");
 		_runningOrCrouching = false;
 		_staminaTimer -= deltaTime;
 		if (_staminaTimer < 0.f)
 			_staminaStatus = IDLE;
 		break;
 	case IDLE:
-		//printText("IDLE");
 		if (_runningOrCrouching)
 			_staminaStatus = RUNNING;
 		break;
@@ -91,10 +95,46 @@ void ASophia::Tick(float deltaTime)
 	// FLASHLIGHT
 	switch (_flashlightStatus) {
 	case LIGHTON:
+		printText("LIGHTON");
+		if (_flashlight != nullptr)
+			_flashlight->SetVisibility(true);
+
+		if (_flashlightTimer < _flashlightMax) {
+			_flashlightTimer += deltaTime;
+		}
+		else {
+			_flashlightStatus = NEEDRECHARGE;
+		}
+
+		if (!_flashlightOn)
+			_flashlightStatus = LIGHTOFF;
+
+		_rechargingFlashlight = false;
 		break;
 	case LIGHTOFF:
-		break;
+		printText("LIGHTOFF");
+		if (_flashlight != nullptr)
+			_flashlight->SetVisibility(false);
+
+		if (_flashlightTimer > 0.f)
+			_flashlightTimer -= deltaTime;
+
+		if (_flashlightOn)
+			_flashlightStatus = LIGHTON;
+			break;
 	case NEEDRECHARGE:
+		printText("NEEDRECHARGE");
+		_flashlightTimer = 0.f;
+
+		if (_flashlight != nullptr)
+			_flashlight->SetVisibility(false);
+
+		if (_rechargingFlashlight) {
+			if (_flashlightOn)
+				_flashlightStatus = LIGHTON;
+			else
+				_flashlightStatus = LIGHTOFF;
+		}
 		break;
 	default:
 		break;
@@ -142,17 +182,10 @@ void ASophia::RunOrCrouch(const FInputActionValue& value)
 
 void ASophia::Flashlight(const FInputActionValue& value) 
 {
-	bool flashlightBool = value.Get<bool>();
-
-	USpotLightComponent* flashlight = ASophia::GetComponentByClass<USpotLightComponent>();
-	if (flashlight != nullptr) {
-		if (flashlightBool) {
-			flashlight->ToggleVisibility(true);
-		}
-		else {
-			flashlight->ToggleVisibility(false);
-		}
-	}
+	if (_flashlightOn)
+		_flashlightOn = false;
+	else
+		_flashlightOn = true;
 }
 
 void ASophia::RechargeFlashlight(const FInputActionValue& value)
