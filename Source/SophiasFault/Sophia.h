@@ -71,8 +71,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement/View variables", meta = (ClampMin = "0.01", ClampMax = "10"))
 	float _flashlightMax;
 
-	class USpotLightComponent* _flashlight;
-	bool _flashlightOn;
 	bool _rechargingFlashlight;
 	float _flashlightTimer;
 	FLASHLIGHT_STATUS _flashlightStatus;
