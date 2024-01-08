@@ -1,5 +1,6 @@
 #include "InventoryComponent.h"
-#include "Items/Item.h"
+#include "Items/ItemPhysic.h"
+#include "../Macros.h"
 
 UInventoryComponent::UInventoryComponent()
 {
@@ -10,34 +11,45 @@ void UInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	for (size_t i = 0; i < _defaultItems.Num(); i++)
-	{
-		AddItem(_defaultItems[i]);
+	for (int i = 0; i < _capacity; i++) {
+		_items.Add(nullptr);
 	}
 }
 
-bool UInventoryComponent::AddItem(UItem* item)
+bool UInventoryComponent::AddItem(AItemPhysic* item)
 {
-	if (_items.Num() >= _capacity || !item) return false;
-
+	if (_items.Num() > _capacity || !item) return false;
 
 	item->_owningInventory = this;
-	item->_world = GetWorld();
-	_items.Add(item);
 
+	for (int i = 0; i < _capacity; i++) {
+		if (_items[i] == nullptr) {
+			_items[i] = item;
+			break;
+		}
+	}
+		
 	_onInventoryUpdated.Broadcast();
 
 	return true;
 }
 
-bool UInventoryComponent::RemoveItem(UItem* item)
+bool UInventoryComponent::RemoveItem(AItemPhysic* item)
 {
 	if (item) {
 		item->_owningInventory = nullptr;
-		item->_world = nullptr;
-		_items.RemoveSingle(item);
+		
+		for (int i = 0; i < _capacity; i++) {
+			if (_items[i] == item) {
+				_items[i] = nullptr;
+				break;
+			}
+		}
+
 		_onInventoryUpdated.Broadcast();
+
 		return true;
 	}
+
 	return false;
 }

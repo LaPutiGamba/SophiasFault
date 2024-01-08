@@ -1,45 +1,31 @@
 #pragma once
 
-#include "CoreMinimal.h"
-#include "UObject/NoExportTypes.h"
+#include "GameFramework/Actor.h"
 #include "Item.generated.h"
 
 /**
  *
  */
-UCLASS(Abstract, BlueprintType, Blueprintable, EditInLineNew, DefaultToInstanced)
-class SOPHIASFAULT_API UItem : public UObject
+UCLASS(Abstract)
+class SOPHIASFAULT_API AItem : public AActor
 {
 	GENERATED_BODY()
 
 public:
-	UItem();
+	AItem();
 
-	virtual class UWorld* GetWorld() const { return _world; };
+protected:
+	virtual void BeginPlay() override;
 
-	UPROPERTY(Transient)
-	class UWorld* _world;
+public:
+	UPROPERTY(EditAnywhere)
+	UStaticMeshComponent* _meshComponent;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item")
-	FText _useActionText;
+	UPROPERTY(EditAnywhere)
+	class USceneComponent* _itemComponent;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item")
-	class UStaticMesh* _pickUpMesh;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
-	class UTexture2D* _thumbnail;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item")
-	FText _itemDisplayName;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item", meta = (MultiLine = true))
-	FText _itemDescription;
-
-	UPROPERTY()
 	class UInventoryComponent* _owningInventory;
 
-	virtual void Use(class ASophia* character);
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnUse(class ASophia* character);
+	class ACharacter* _myCharacter;
+	class UCameraComponent* _playerCamera;
 };

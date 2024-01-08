@@ -6,7 +6,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryUpdated);
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class SOPHIASFAULT_API UInventoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -16,11 +16,11 @@ public:
 
 	virtual void BeginPlay() override;
 
-	bool AddItem(class UItem* item);
-	bool RemoveItem(class UItem* item);
+	bool AddItem(class AItemPhysic* item);
+	bool RemoveItem(class AItemPhysic* item);
 
-	UPROPERTY(EditDefaultsOnly, Instanced)
-	TArray<class UItem*> _defaultItems;
+	UPROPERTY(EditAnywhere)
+	UStaticMesh* prueba;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
 	int32 _capacity;
@@ -28,6 +28,6 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Inventory")
 	FOnInventoryUpdated _onInventoryUpdated;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Items")
-	TArray<class UItem*> _items;
+	UPROPERTY(EditAnywhere, Category = "Items")
+	TArray<class AItemPhysic*> _items;
 };

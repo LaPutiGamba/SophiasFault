@@ -3,37 +3,69 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
-#include "Components/SpotLightComponent.h" 
 #include "Sophia.generated.h"
 
-#define printText(_text) GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow, FString::Printf(TEXT(_text)))
-#define printFloat(_float) GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow, FString::Printf(TEXT("%f"), _float))
-#define printBool(_bool) GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow, FString::Printf(TEXT("%s"), _bool ? TEXT("TRUE") : TEXT("FALSE")))
-
 enum STAMINA_STATUS { RUNNING, IDLE, EXHAUSTED };
-enum FLASHLIGHT_STATUS { LIGHTON, LIGHTOFF, NEEDRECHARGE };
 
 UCLASS()
 class SOPHIASFAULT_API ASophia : public ACharacter
 {
 	GENERATED_BODY()
 
-/************* VARIABLES *************/
+	/************* VARIABLES *************/
 protected:
+	/* ----- Global variables ----- */
+	APlayerController* _playerController;
+	/* ---------------------------- */
+
+
+	/* ----- Mapping Contexts ----- */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputMappingContext* _mainMappingContext;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputMappingContext* _pianoMappingContext;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputMappingContext* _earthMappingContext;
+	/* ---------------------------- */
+
+
 	/* ----- Game State to use variables ----- */
 	class AGMS_MyGameStateBase* _myGameState;
 	/* --------------------------------------- */
 
-	/* ----- Camera velocity ----- */
+
+	/* ----- Materials ----- */
+	/* --------------------- */
+
+
+	/* ------ Camera ------ */
+	UPROPERTY(EditAnywhere, Category = "Camera")
+	class USpringArmComponent* _springArmComponent;
+
+	UPROPERTY(EditAnywhere, Category = "Camera")
+	class UCameraComponent* _cameraComponent;
+
+	FVector _cameraLocation;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement/View variables", meta = (ClampMin = "0.01", ClampMax = "1"))
 	float _cameraVelocity;
-	/* --------------------------- */
+
+	UPROPERTY(EditAnywhere, Category = "Camera")
+	class AActor* _pianoCameraActor;
+
+	UPROPERTY(EditAnywhere, Category = "Camera")
+	class AActor* _earthCameraActor;
+	/* -------------------- */
+
 
 	/* ----- Speed ----- */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement/View variables", meta = (ClampMin = "0.01", ClampMax = "2"))
 	float _speed;
 	/* ----------------- */
-	
+
+
 	/* ----- Run or Crouch and Stamina ----- */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* _runOrCrouchAction;
@@ -41,24 +73,40 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement/View variables", meta = (ClampMin = "0.01", ClampMax = "10"))
 	float _staminaMax;
 
-	bool _runningOrCrouching;
+	bool _bRunningOrCrouching;
 	float _staminaTimer;
 	STAMINA_STATUS _staminaStatus;
 	/* ------------------------------------- */
 
 
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement/View variables")
-	bool _onChase;
+	bool _bOnChase;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputMappingContext* _defaultMappingContext;
-
+	/* ----- Input Actions ----- */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* _moveAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* _lookAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _pickUpAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _dropItemAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _inspectAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _clickInteractiveAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _getUpAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _clickRotationAction;
+	/* ------------------------- */
 
 
 	/* ----- Flashlight and it's reload system ----- */
@@ -68,27 +116,95 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* _rechargeFlashlightAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement/View variables", meta = (ClampMin = "0.01", ClampMax = "10"))
-	float _flashlightMax;
-
-	bool _rechargingFlashlight;
-	float _flashlightTimer;
-	FLASHLIGHT_STATUS _flashlightStatus;
+	class AFlashlight* _flashlightItem;
 	/* --------------------------------------------- */
+
 
 	/* ----- Inventory ----- */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* _inventoryAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _changeItemAction;
+	int _currentItemSlotIndex;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _handItem0Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _handItem1Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _handItem2Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _handItem3Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _handItem4Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _handItem5Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _handItem6Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _handItem7Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _handItem8Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _handItem9Action;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
 	class UInventoryComponent* _inventory;
 
-	UPROPERTY(EditAnywhere, Category = "Inventory")
 	TSubclassOf<class UInventoryWidget> _inventoryHUDClass;
 
-	UPROPERTY(VisibleAnywhere, Category = "Inventory")
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	TSubclassOf<class UUserWidget> _inventoryItemsClass;
+
+	UPROPERTY(EditAnywhere, Category = "Inventory")
 	class UInventoryWidget* _inventoryHUD;
+
+	bool _bInventoryOpen;
 	/* --------------------- */
+
+
+	/* ----- Items ----- */
+	UPROPERTY(EditAnywhere)
+	class USceneComponent* _holdingComponent;
+	class USceneComponent* _attachComponent;
+
+	UPROPERTY(EditAnywhere)
+	class AItemPhysic* _currentItemPhysic;
+	UPROPERTY(EditAnywhere)
+	class AItemInteractive* _currentItemInteractive;
+	UPROPERTY(EditAnywhere)
+	class AActor* _currentChangeCameraItem;
+	UPROPERTY(EditAnywhere)
+	class AItemPhysic* _currentHandItem;
+
+	bool _bCanMove;
+	bool _bHoldingItem;
+	bool _bInspecting;
+	bool _bInspectingPressed;
+	bool _bNoSwitchableItem;
+	bool _bPositionActorPuzzle;
+
+	float _pitchMax;
+	float _pitchMin;
+	float _itemInspectDistance;
+
+	FRotator _lastRotation;
+
+	FVector _start;
+	FVector _forwardVector;
+	FVector _end;
+
+	FHitResult _hit;
+
+	FComponentQueryParams _defaultComponentQueryParams;
+	FCollisionResponseParams _defaultResponseParams;
+	/* ----------------- */
+
+
+	/* ----- Puzzle variables ----- */
+
+	/* ---------------------------- */
 
 /************* FUNCTIONS *************/
 public:
@@ -100,6 +216,15 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* playerInputComponent) override;
+
+	// Get the inventory component
+	class UInventoryComponent* GetInventory() { return _inventory; }
+
+	// Get the item widget class
+	TSubclassOf<class UUserWidget> GetItemWidgetClass() { return _inventoryItemsClass; }
+
+	// Get the current hand item
+	class AItemPhysic* GetCurrentHandItem() { return _currentHandItem; }
 
 protected:
 	// Called when the game starts or when spawned
@@ -117,5 +242,21 @@ protected:
 
 	void Inventory(const FInputActionValue& value);
 
-	void UseItem(class UItem* item);
+	// EARTH PUZZLE
+	void ClickInteractive(const FInputActionValue& value);
+
+	void EarthRotation(const FInputActionValue& value);
+
+	// ITEMS
+	void OnAction(const FInputActionValue& value);
+
+	void DropItem(const FInputActionValue& value);
+
+	void OnInspect(const FInputActionValue& value);
+
+	void BlendWithCamera(const FInputActionValue& value);
+
+	void ChangeCurrentHandItem(const FInputActionValue& value, int index);
+
+	void ToggleMovement();
 };
