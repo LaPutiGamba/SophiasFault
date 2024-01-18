@@ -5,7 +5,7 @@
 #include "Tickable.h"
 #include "Flashlight.generated.h"
 
-enum FLASHLIGHT_STATUS { LIGHTON, LIGHTOFF, NEEDRECHARGE };
+enum FLASHLIGHT_STATUS { ST_LIGHTON, ST_LIGHTOFF, ST_NEEDRECHARGE };
 
 UCLASS()
 class SOPHIASFAULT_API AFlashlight : public AItemPhysic, public FTickableGameObject

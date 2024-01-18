@@ -10,6 +10,7 @@
 #include "Inventory/Items/PhysicItems/Flashlight.h"
 #include "Inventory/Items/PhysicItems/Stair.h"
 #include "Inventory/Items/PhysicItems/MirrorLight.h"
+#include "Inventory/Items/InteractiveItems/PianoKey.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Blueprint/UserWidget.h"
@@ -23,8 +24,6 @@ ASophia::ASophia()
 
 	// Init of GAMESTATE variable
 	_myGameState = GetWorld() != nullptr ? GetWorld()->GetGameState<AGMS_MyGameStateBase>() : nullptr;
-
-	// Init of MATERIALS variables
 
 	// Init of INVENTORY variables
 	_inventory = CreateDefaultSubobject<UInventoryComponent>("Inventory");
@@ -59,7 +58,7 @@ ASophia::ASophia()
 	_bRunningOrCrouching = false;
 	_staminaTimer = 0.f;
 	_staminaMax = 5.f;
-	_staminaStatus = IDLE;
+	_staminaStatus = ST_IDLE;
 
 	// Init of ITEMS variables
 	_attachComponent = CreateDefaultSubobject<USceneComponent>(TEXT("AttachComponent"));
@@ -133,7 +132,7 @@ void ASophia::Tick(float deltaTime)
 			the player running or like crouching. Also, it has a maximum amount of time to run or crouch, so it will increase
 			the _staminaTimer and if it reach the max, it will change to the EXHAUSTED status.
 		*/
-	case RUNNING:
+	case ST_RUNNING:
 		if (_bRunningOrCrouching) {
 			if (_myGameState->GetOnChase()) {
 				_speed = 1.f;
@@ -141,7 +140,7 @@ void ASophia::Tick(float deltaTime)
 				if (_staminaTimer < _staminaMax) {
 					_staminaTimer += deltaTime;
 				} else {
-					_staminaStatus = EXHAUSTED;
+					_staminaStatus = ST_EXHAUSTED;
 					_speed = 0.5f;
 				}
 			} else {
@@ -149,21 +148,21 @@ void ASophia::Tick(float deltaTime)
 				_springArmComponent->SetRelativeLocation(FVector(_cameraLocation.X, _cameraLocation.Y, (_cameraLocation.Z - 40.f)));
 			}
 		} else {
-			_staminaStatus = IDLE;
+			_staminaStatus = ST_IDLE;
 			_speed = 0.5f;
 		}
 
 		if (_bNoSwitchableItem)
-			_staminaStatus = IDLE;
+			_staminaStatus = ST_IDLE;
 		break;
 		/*
 			If the player is exhausted, it will start decreasing the _staminaTimer. If it reach half of the maximum stamina,
 			and the player still pressing the running or crouching button, it will start running again until the half of the
 			max stamina it's spent. If the person doesn't press the running or crouching button, it will change to IDLE status.
 		*/
-	case EXHAUSTED:
+	case ST_EXHAUSTED:
 		if (_bRunningOrCrouching && _staminaTimer < (_staminaMax / 2))
-			_staminaStatus = RUNNING;
+			_staminaStatus = ST_RUNNING;
 
 		_staminaTimer -= deltaTime;
 
@@ -171,15 +170,15 @@ void ASophia::Tick(float deltaTime)
 			_springArmComponent->SetRelativeLocation(_cameraLocation);
 
 		if (_bNoSwitchableItem)
-			_staminaStatus = IDLE;
+			_staminaStatus = ST_IDLE;
 
 		if (_staminaTimer < 0.f && !_bRunningOrCrouching)
-			_staminaStatus = IDLE;
+			_staminaStatus = ST_IDLE;
 		break;
 		/*
 			If the player it's on the IDLE status, it the running or crouching button is pressed it will change to RUNNING status.
 		*/
-	case IDLE:
+	case ST_IDLE:
 		if (!_myGameState->GetOnChase()) 
 			_springArmComponent->SetRelativeLocation(_cameraLocation);
 
@@ -189,7 +188,7 @@ void ASophia::Tick(float deltaTime)
 			_speed = 0.5f;
 
 		if (_bRunningOrCrouching && !_bNoSwitchableItem)
-			_staminaStatus = RUNNING;
+			_staminaStatus = ST_RUNNING;
 		break;
 	default:
 		break;
@@ -206,30 +205,39 @@ void ASophia::Tick(float deltaTime)
 	// Mirror light puzzle (potisioning the mirror lights on the mirror and activating the solution)
 	if (_bHoldingItem && _currentHandItem->GetClass()->IsChildOf(AMirrorLight::StaticClass())) {
 		if (GetWorld()->LineTraceSingleByChannel(_hit, _start, _end, ECC_Selectable, _defaultComponentQueryParams, _defaultResponseParams)) {
-			if (_hit.GetActor()->ActorHasTag("MirrorLightPosition") && _bPositionActorPuzzle) {
-				AMirrorLight* mirror = Cast<AMirrorLight>(_currentHandItem);
-				mirror->PositionLight(_hit.GetActor()->GetActorLocation());
-				_inventory->RemoveItem(_currentHandItem);
+			if (_hit.GetActor()->ActorHasTag("MirrorLightPosition"))
+				Cast<AMirrorLight>(_currentHandItem)->_mirrorLightPositioned = _hit.GetActor();
+		} else {
+			Cast<AMirrorLight>(_currentHandItem)->_mirrorLightPositioned = nullptr;
+		}
+	}
 
-				if (_myGameState != nullptr) {
-					if (_myGameState->GetPositionedMirrorLights()->Num() == 0) {
+	if (_bPositionActorPuzzle && Cast<AMirrorLight>(_currentHandItem)) {
+		AMirrorLight* mirror = Cast<AMirrorLight>(_currentHandItem); 
+
+		if (mirror->_mirrorLightPositioned != nullptr) {
+			mirror->PositionLight(_hit.GetActor()->GetActorLocation());
+			_inventory->RemoveItem(_currentHandItem);
+
+			if (_myGameState != nullptr) {
+				if (_myGameState->GetPositionedMirrorLights()->Num() == 0) {
+					_myGameState->GetPositionedMirrorLights()->Add(mirror->_mirrorLightID);
+				}
+				else {
+					int value = _myGameState->GetPositionedMirrorLights()->Find(mirror->_mirrorLightID);
+					if (value == -1)
 						_myGameState->GetPositionedMirrorLights()->Add(mirror->_mirrorLightID);
-					} else {
-						int value = _myGameState->GetPositionedMirrorLights()->Find(mirror->_mirrorLightID);
-						if (value == -1)
-							_myGameState->GetPositionedMirrorLights()->Add(mirror->_mirrorLightID);
-						else
-							_myGameState->GetPositionedMirrorLights()->Remove(mirror->_mirrorLightID);
-					}
-
-					if (_myGameState->GetPositionedMirrorLights()->Num() == 8)
-						_myGameState->ActivateMirrorLightSolution();
+					else
+						_myGameState->GetPositionedMirrorLights()->Remove(mirror->_mirrorLightID);
 				}
 
-				_currentHandItem = nullptr;
-				_bPositionActorPuzzle = false;
-				_bHoldingItem = !_bHoldingItem;
+				if (_myGameState->GetPositionedMirrorLights()->Num() == 8)
+					_myGameState->ActivateMirrorLightSolution();
 			}
+
+			_currentHandItem = nullptr;
+			_bPositionActorPuzzle = false;
+			_bHoldingItem = !_bHoldingItem;
 		}
 	}
 
@@ -312,6 +320,15 @@ void ASophia::Tick(float deltaTime)
 			}
 		}
 	}
+
+	if (_currentHandItem != nullptr) {
+		if (Cast<AMirrorLight>(_currentHandItem) != nullptr) {
+			if (Cast<AMirrorLight>(_currentHandItem)->_mirrorLightPositioned != nullptr)
+				printFName(Cast<AMirrorLight>(_currentHandItem)->_mirrorLightPositioned->GetFName());
+			else
+				printText("nullptr");
+		}
+	}
 }
 
 void ASophia::SetupPlayerInputComponent(UInputComponent *playerInputComponent)
@@ -329,17 +346,17 @@ void ASophia::SetupPlayerInputComponent(UInputComponent *playerInputComponent)
 		// Change Camera
 		EnhancedInputComponent->BindAction(_getUpAction, ETriggerEvent::Triggered, this, &ASophia::BlendWithCamera);
 		// Items slots
-		EnhancedInputComponent->BindAction(_changeItemAction, ETriggerEvent::Triggered, this, &ASophia::ChangeCurrentHandItem, 10);
-		EnhancedInputComponent->BindAction(_handItem0Action, ETriggerEvent::Triggered, this, &ASophia::ChangeCurrentHandItem, 0);
-		EnhancedInputComponent->BindAction(_handItem1Action, ETriggerEvent::Triggered, this, &ASophia::ChangeCurrentHandItem, 1);
-		EnhancedInputComponent->BindAction(_handItem2Action, ETriggerEvent::Triggered, this, &ASophia::ChangeCurrentHandItem, 2);
-		EnhancedInputComponent->BindAction(_handItem3Action, ETriggerEvent::Triggered, this, &ASophia::ChangeCurrentHandItem, 3);
-		EnhancedInputComponent->BindAction(_handItem4Action, ETriggerEvent::Triggered, this, &ASophia::ChangeCurrentHandItem, 4);
-		EnhancedInputComponent->BindAction(_handItem5Action, ETriggerEvent::Triggered, this, &ASophia::ChangeCurrentHandItem, 5);
-		EnhancedInputComponent->BindAction(_handItem6Action, ETriggerEvent::Triggered, this, &ASophia::ChangeCurrentHandItem, 6);
-		EnhancedInputComponent->BindAction(_handItem7Action, ETriggerEvent::Triggered, this, &ASophia::ChangeCurrentHandItem, 7);
-		EnhancedInputComponent->BindAction(_handItem8Action, ETriggerEvent::Triggered, this, &ASophia::ChangeCurrentHandItem, 8);
-		EnhancedInputComponent->BindAction(_handItem9Action, ETriggerEvent::Triggered, this, &ASophia::ChangeCurrentHandItem, 9);
+		EnhancedInputComponent->BindAction(_changeItemMouseAction, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 10);
+		EnhancedInputComponent->BindAction(_changeHandItem0Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 0);
+		EnhancedInputComponent->BindAction(_changeHandItem1Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 1);
+		EnhancedInputComponent->BindAction(_changeHandItem2Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 2);
+		EnhancedInputComponent->BindAction(_changeHandItem3Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 3);
+		EnhancedInputComponent->BindAction(_changeHandItem4Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 4);
+		EnhancedInputComponent->BindAction(_changeHandItem5Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 5);
+		EnhancedInputComponent->BindAction(_changeHandItem6Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 6);
+		EnhancedInputComponent->BindAction(_changeHandItem7Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 7);
+		EnhancedInputComponent->BindAction(_changeHandItem8Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 8);
+		EnhancedInputComponent->BindAction(_changeHandItem9Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 9);
 		// Inventory and Items
 		EnhancedInputComponent->BindAction(_inventoryAction, ETriggerEvent::Triggered, this, &ASophia::Inventory);
 		EnhancedInputComponent->BindAction(_pickUpAction, ETriggerEvent::Triggered, this, &ASophia::OnAction);
@@ -423,10 +440,37 @@ void ASophia::Inventory(const FInputActionValue& value)
 void ASophia::OnAction(const FInputActionValue &value)
 {
 	if (_currentHandItem) {
-		if (_currentHandItem->GetClass()->IsChildOf(AMirrorLight::StaticClass())) 
-			_bPositionActorPuzzle = true;
-		else 
-			_bPositionActorPuzzle = false;
+		if (_bNoSwitchableItem) {
+			if (_currentHandItem->GetClass()->IsChildOf(AStair::StaticClass())) {
+				AStair* stair = Cast<AStair>(_currentHandItem);
+				if (stair->_triggered) {
+					_inventory->RemoveItem(_currentHandItem);
+					_currentHandItem->Destroy();
+					_currentHandItem = nullptr;
+					_bHoldingItem = !_bHoldingItem;
+
+					TArray<AActor*> stairSearch;
+					UGameplayStatics::GetAllActorsWithTag(GetWorld(), "StairPositioned", stairSearch);
+
+					for (auto& result : stairSearch) {
+						result->SetActorHiddenInGame(false);
+						result->SetActorEnableCollision(true);
+						TArray<UActorComponent*> staticMeshComponents;
+						UStaticMeshComponent* staticMesh = FindComponentByClass<UStaticMeshComponent>();
+						staticMesh->SetMaterial(0, stair->_defaultMaterial);
+						_bNoSwitchableItem = false;
+					}
+				}
+			}
+		} else {
+			if (_currentHandItem->GetClass()->IsChildOf(AMirrorLight::StaticClass())) {
+				_bPositionActorPuzzle = true;
+			} else {
+				_bPositionActorPuzzle = false;
+				Cast<AMirrorLight>(_currentHandItem)->_mirrorLightPositioned->SetActorEnableCollision(true);
+				Cast<AMirrorLight>(_currentHandItem)->_mirrorLightPositioned = nullptr;
+			}
+		}
 	} else if ((_currentItemPhysic || _flashlightItem)) {
 		if (_currentItemPhysic != nullptr) {
 			_inventory->AddItem(_currentItemPhysic);
@@ -447,7 +491,12 @@ void ASophia::OnAction(const FInputActionValue &value)
 			_bHoldingItem = !_bHoldingItem;
 		}
 	} else if (_currentItemInteractive) {
-		_currentItemInteractive->UseInteraction();
+		if (_currentItemInteractive->GetClass()->IsChildOf(APianoKey::StaticClass())) {
+			if (!_myGameState->GetPianoPuzzleSolved())
+				_currentItemInteractive->UseInteraction();
+		} else {
+			_currentItemInteractive->UseInteraction();
+		}
 	} else if (_currentChangeCameraItem) {
 		if (_currentChangeCameraItem->ActorHasTag("PianoSeat")) {
 			if (_myGameState->_onBlendTime <= 0.0f) {
@@ -487,28 +536,6 @@ void ASophia::OnAction(const FInputActionValue &value)
 					Subsystem->AddMappingContext(_pianoMappingContext, 0);
 				else if (_currentChangeCameraItem->ActorHasTag("EarthBall"))
 					Subsystem->AddMappingContext(_earthMappingContext, 0);
-			}
-		}
-	} else if (_bNoSwitchableItem) {
-		if (_currentHandItem->GetClass()->IsChildOf(AStair::StaticClass())) {
-			AStair* stair = Cast<AStair>(_currentHandItem);
-			if (stair->_triggered) {
-				_inventory->RemoveItem(_currentHandItem);
-				_currentHandItem->Destroy();
-				_currentHandItem = nullptr;
-				_bHoldingItem = !_bHoldingItem;
-				
-				TArray<AActor*> stairSearch;
-				UGameplayStatics::GetAllActorsWithTag(GetWorld(), "StairPositioned", stairSearch);
-
-				for (auto& result : stairSearch) {
-					result->SetActorHiddenInGame(false);
-					result->SetActorEnableCollision(true);
-					TArray<UActorComponent*> staticMeshComponents;
-					UStaticMeshComponent* staticMesh = FindComponentByClass<UStaticMeshComponent>();
-					staticMesh->SetMaterial(0, stair->_defaultMaterial);
-					_bNoSwitchableItem = false;
-				}
 			}
 		}
 	}
@@ -583,51 +610,14 @@ void ASophia::BlendWithCamera(const FInputActionValue &value)
 	}
 }
 
-void ASophia::ChangeCurrentHandItem(const FInputActionValue& value, int index)
-{
-	if (_bNoSwitchableItem) return;
-
-	// Hide the actual item in the _inventory and in the hand
-	if (_inventory->_items[_currentItemSlotIndex] != nullptr) {
-		_inventory->_items[_currentItemSlotIndex]->SetVisibility(false);
-		_currentHandItem->SetVisibility(false);
-	}
-
-	// If the index is not 10, it means that the player has pressed a number key, so we will change the item to that slot
-	if (index != 10) {
-		_currentItemSlotIndex = index;
-	// If the index is 10, it means that the player has pressed the change item key, so we will change the item to the next slot
-	} else {
-		float mouseAxis = value.Get<float>();
-
-		if (mouseAxis > 0.f) {
-			if ((_currentItemSlotIndex < 9))
-				_currentItemSlotIndex++;
-		} else if (mouseAxis < 0.f) {
-			if (_currentItemSlotIndex > 0)
-				_currentItemSlotIndex--;
-		}
-	}
-
-	// Show the new item in the _inventory and in the hand
-	if (_inventory->_items[_currentItemSlotIndex] != nullptr) {
-		_inventory->_items[_currentItemSlotIndex]->SetVisibility(true);
-		_currentHandItem = _inventory->_items[_currentItemSlotIndex];
-		_currentHandItem->SetVisibility(true);
-		_bHoldingItem = true;
-	// If the slot is empty, we will set the _currentHandItem to nullptr
-	} else {
-		_currentHandItem = nullptr;
-		_bHoldingItem = false;
-	}
-}
-
 void ASophia::EarthRotation(const FInputActionValue& value)
 {
 	FVector2D mousePosition;
 	_playerController->GetMousePosition(mousePosition.X, mousePosition.Y);
 	FVector2D screenSize;
 	GEngine->GameViewport->GetViewportSize(screenSize);
+
+	//_playerController->
 
 	FRotator sendRotator = FRotator::ZeroRotator;
 	
@@ -638,7 +628,7 @@ void ASophia::EarthRotation(const FInputActionValue& value)
 	}
 
 	if (_currentChangeCameraItem != nullptr)
-		_currentChangeCameraItem->AddActorWorldRotation(sendRotator);
+		_currentChangeCameraItem->SetActorRelativeRotation(_currentChangeCameraItem->GetActorRotation() + sendRotator);
 }
 
 void ASophia::ClickInteractive(const FInputActionValue &value)

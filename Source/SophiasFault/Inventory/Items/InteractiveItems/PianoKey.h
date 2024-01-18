@@ -24,7 +24,7 @@ public:
 
 	FOnTimelineFloat _timelineCallback;
 
-	bool _readyState;
+	bool _bReadyState;
 
 	float _timelineValue;
 	float _curveFloatValue;

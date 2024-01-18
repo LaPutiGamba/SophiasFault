@@ -19,6 +19,8 @@ public:
 	UPROPERTY(EditAnywhere)
 	uint8 _mirrorLightID;
 
+	AActor* _mirrorLightPositioned;
+
 	virtual void BeginPlay() override;
 
 	virtual void Tick(float deltaTime) override;

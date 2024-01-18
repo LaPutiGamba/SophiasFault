@@ -14,6 +14,7 @@ class SOPHIASFAULT_API AGMS_MyGameStateBase : public AGameStateBase
 
 private:
 	bool _bOnChase;
+	bool _bPianoPuzzleSolved;
 	TArray<uint8> _pianoKeysPressed;
 	TArray<uint8> _pianoKeysResult;
 	TArray<uint8> _selectedContinents;
@@ -29,6 +30,10 @@ public:
 	// AI functions
 	void SetOnChase(bool value) { _bOnChase = value; }
 	bool GetOnChase() { return _bOnChase; }
+
+	// Piano functions
+	void SetPianoPuzzleSolved(bool value) { _bPianoPuzzleSolved = value; }
+	bool GetPianoPuzzleSolved() { return _bPianoPuzzleSolved; }
 
 	/***** PUZZLE *****/
 	// Piano functions

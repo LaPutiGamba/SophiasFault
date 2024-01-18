@@ -15,7 +15,7 @@ APianoKey::APianoKey()
 	_soundComponent->SetupAttachment(RootComponent);
 	_soundComponent->SetRelativeLocation(FVector(100.0f, 0.0f, 0.0f));
 
-	_readyState = true;
+	_bReadyState = true;
 }
 
 void APianoKey::BeginPlay()
@@ -50,16 +50,17 @@ void APianoKey::ControlPianoKey(float value)
 
 void APianoKey::SetState()
 {
-	_readyState = true;
+	_bReadyState = true;
 }
 
 void APianoKey::UseInteraction()
 {
-	if (_readyState) {
+	if (_bReadyState && !_myGameState->GetPianoPuzzleSolved()) {
 		if (_soundCue != nullptr)
 			_soundComponent->Play();
 
-		if (_myGameState != nullptr && _myGameState->GetPianoKeysPressed()->Num() <= 7) {
+		if (_myGameState != nullptr && _myGameState->GetPianoKeysPressed()->Num() <= 11) {
+			// Revisa esto bobo
 			if (_pianoKeyID == (*_myGameState->GetPianoKeysResult())[_myGameState->GetPianoKeysPressed()->Num()]) {
 				_myGameState->GetPianoKeysPressed()->Add(_pianoKeyID);
 				for (size_t i = 0; i < _myGameState->GetPianoKeysPressed()->Num(); i++) {
@@ -71,12 +72,13 @@ void APianoKey::UseInteraction()
 				// Escribir texto tipo: Mmmm no suena muy bien
 			}
 
-			if (_myGameState->GetPianoKeysPressed()->Num() == 7) {
+			if (_myGameState->GetPianoKeysPressed()->Num() == 11) {
 				_myGameState->ActivatePianoSolution();
+				_myGameState->SetPianoPuzzleSolved(true);
 			}
 		}
 
-		_readyState = false;
+		_bReadyState = false;
 		_timelineComponent->PlayFromStart();
 	}
 }

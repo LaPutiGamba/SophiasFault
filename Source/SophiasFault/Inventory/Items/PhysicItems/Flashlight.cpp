@@ -8,7 +8,7 @@ AFlashlight::AFlashlight()
 	_rechargingFlashlight = false;
 	_flashlightTimer = 0.f;
 	_flashlightMaxDuration = 10.f;
-	_flashlightStatus = LIGHTOFF;
+	_flashlightStatus = ST_LIGHTOFF;
 	PrimaryActorTick.bCanEverTick = true;
 
 }
@@ -27,21 +27,21 @@ void AFlashlight::Tick(float deltaTime)
 	Super::Tick(deltaTime);
 
 	switch (_flashlightStatus) {
-	case LIGHTON:
+	case ST_LIGHTON:
 		if (_flashlight != nullptr)
 			_flashlight->SetVisibility(true);
 
 		if (_flashlightTimer < _flashlightMaxDuration)
 			_flashlightTimer += deltaTime;
 		else
-			_flashlightStatus = NEEDRECHARGE;
+			_flashlightStatus = ST_NEEDRECHARGE;
 
 		if (!_flashlightOn)
-			_flashlightStatus = LIGHTOFF;
+			_flashlightStatus = ST_LIGHTOFF;
 
 		_rechargingFlashlight = false;
 		break;
-	case LIGHTOFF:
+	case ST_LIGHTOFF:
 		if (_flashlight != nullptr)
 			_flashlight->SetVisibility(false);
 
@@ -49,9 +49,9 @@ void AFlashlight::Tick(float deltaTime)
 			_flashlightTimer -= deltaTime;
 
 		if (_flashlightOn)
-			_flashlightStatus = LIGHTON;
+			_flashlightStatus = ST_LIGHTON;
 		break;
-	case NEEDRECHARGE:
+	case ST_NEEDRECHARGE:
 		_flashlightTimer = 0.f;
 
 		if (_flashlight != nullptr)
@@ -59,9 +59,9 @@ void AFlashlight::Tick(float deltaTime)
 
 		if (_rechargingFlashlight) {
 			if (_flashlightOn)
-				_flashlightStatus = LIGHTON;
+				_flashlightStatus = ST_LIGHTON;
 			else
-				_flashlightStatus = LIGHTOFF;
+				_flashlightStatus = ST_LIGHTOFF;
 		}
 		break;
 	default:

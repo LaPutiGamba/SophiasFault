@@ -5,7 +5,7 @@
 #include "InputActionValue.h"
 #include "Sophia.generated.h"
 
-enum STAMINA_STATUS { RUNNING, IDLE, EXHAUSTED };
+enum STAMINA_STATUS { ST_RUNNING, ST_IDLE, ST_EXHAUSTED };
 
 UCLASS()
 class SOPHIASFAULT_API ASophia : public ACharacter
@@ -125,29 +125,28 @@ protected:
 	class UInputAction* _inventoryAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* _changeItemAction;
-	int _currentItemSlotIndex;
+	class UInputAction* _changeItemMouseAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _changeHandItem0Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _changeHandItem1Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _changeHandItem2Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _changeHandItem3Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _changeHandItem4Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _changeHandItem5Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _changeHandItem6Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _changeHandItem7Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _changeHandItem8Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _changeHandItem9Action;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* _handItem0Action;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* _handItem1Action;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* _handItem2Action;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* _handItem3Action;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* _handItem4Action;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* _handItem5Action;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* _handItem6Action;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* _handItem7Action;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* _handItem8Action;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* _handItem9Action;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
 	class UInventoryComponent* _inventory;
@@ -255,8 +254,6 @@ protected:
 	void OnInspect(const FInputActionValue& value);
 
 	void BlendWithCamera(const FInputActionValue& value);
-
-	void ChangeCurrentHandItem(const FInputActionValue& value, int index);
 
 	void ToggleMovement();
 };
