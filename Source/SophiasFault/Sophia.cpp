@@ -5,12 +5,14 @@
 #include "Core/GMS_MyGameStateBase.h"
 #include "Inventory/InventoryComponent.h"
 #include "Inventory/InventoryWidget.h"
-#include "Inventory/Items/ItemPhysic.h"
-#include "Inventory/Items/ItemInteractive.h"
-#include "Inventory/Items/PhysicItems/Flashlight.h"
-#include "Inventory/Items/PhysicItems/Stair.h"
-#include "Inventory/Items/PhysicItems/MirrorLight.h"
-#include "Inventory/Items/InteractiveItems/PianoKey.h"
+#include "Inventory/Items/Flashlight.h"
+#include "Inventory/Items/Stair.h"
+#include "Inventory/Items/MirrorLight.h"
+#include "Inventory/Items/PianoKey.h"
+#include "Inventory/Items/ActorBlendCamera.h"
+#include "Interfaces/InteractiveInterface.h"
+#include "Interfaces/PickUpInterface.h"
+#include "Interfaces/OnActionInterface.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Blueprint/UserWidget.h"
@@ -69,19 +71,15 @@ ASophia::ASophia()
 	_holdingComponent->SetRelativeLocation(FVector(50.0f, 0.0f, 0.0f));
 	_holdingComponent->SetupAttachment(_attachComponent);
 
-	_currentItemPhysic = nullptr;
-	_currentItemInteractive = nullptr;
-	_currentChangeCameraItem = nullptr;
-	_flashlightItem = nullptr;
 	_bCanMove = true;
-	_bHoldingItem = false;
-	_bInspecting = false;
 	_bInspectingPressed = false;
-	_bNoSwitchableItem = false;
-	_bPositionActorPuzzle = false;
-	_itemInspectDistance = 120.f;
 
 	// Init of PUZZLE variables
+}
+
+AItem* ASophia::GetCurrentHandItem()
+{
+	return _inventory->_currentHandItem;
 }
 
 void ASophia::BeginPlay()
@@ -152,8 +150,10 @@ void ASophia::Tick(float deltaTime)
 			_speed = 0.5f;
 		}
 
-		if (_bNoSwitchableItem)
-			_staminaStatus = ST_IDLE;
+		if (_inventory->_currentHandItem) {
+			if (_inventory->_currentHandItem->_bNoSwitchableItem)
+				_staminaStatus = ST_IDLE;
+		}
 		break;
 		/*
 			If the player is exhausted, it will start decreasing the _staminaTimer. If it reach half of the maximum stamina,
@@ -169,8 +169,10 @@ void ASophia::Tick(float deltaTime)
 		if (!_myGameState->GetOnChase())
 			_springArmComponent->SetRelativeLocation(_cameraLocation);
 
-		if (_bNoSwitchableItem)
-			_staminaStatus = ST_IDLE;
+		if (_inventory->_currentHandItem) {
+			if (_inventory->_currentHandItem->_bNoSwitchableItem)
+				_staminaStatus = ST_IDLE;
+		}
 
 		if (_staminaTimer < 0.f && !_bRunningOrCrouching)
 			_staminaStatus = ST_IDLE;
@@ -182,153 +184,29 @@ void ASophia::Tick(float deltaTime)
 		if (!_myGameState->GetOnChase()) 
 			_springArmComponent->SetRelativeLocation(_cameraLocation);
 
-		if (_bNoSwitchableItem)
-			_speed = 0.37f;
-		else
+		if (_inventory->_currentHandItem) {
+			if (_inventory->_currentHandItem->_bNoSwitchableItem)
+				_speed = 0.375f;
+			else
+				_speed = 0.5f;
+		} else {
 			_speed = 0.5f;
+		}
 
-		if (_bRunningOrCrouching && !_bNoSwitchableItem)
+		if (_inventory->_currentHandItem) {
+			if (_bRunningOrCrouching && !_inventory->_currentHandItem->_bNoSwitchableItem)
+				_staminaStatus = ST_RUNNING;
+		} else if (_bRunningOrCrouching) {
 			_staminaStatus = ST_RUNNING;
+		}
 		break;
 	default:
 		break;
 	}
 
-	// ITEMS (PHYSICS AND STATICS)
-	// Calculations to know the distance and in what point the player has to look to detect an Item.
-	if (_cameraComponent != nullptr)
-		_start = _cameraComponent->GetComponentLocation();
-	if (_cameraComponent != nullptr)
-		_forwardVector = _cameraComponent->GetForwardVector();
-	_end = ((_forwardVector * 200.f) + _start);
-
-	// Mirror light puzzle (potisioning the mirror lights on the mirror and activating the solution)
-	if (_bHoldingItem && _currentHandItem->GetClass()->IsChildOf(AMirrorLight::StaticClass())) {
-		if (GetWorld()->LineTraceSingleByChannel(_hit, _start, _end, ECC_Selectable, _defaultComponentQueryParams, _defaultResponseParams)) {
-			if (_hit.GetActor()->ActorHasTag("MirrorLightPosition"))
-				Cast<AMirrorLight>(_currentHandItem)->_mirrorLightPositioned = _hit.GetActor();
-		} else {
-			Cast<AMirrorLight>(_currentHandItem)->_mirrorLightPositioned = nullptr;
-		}
-	}
-
-	if (_bPositionActorPuzzle && Cast<AMirrorLight>(_currentHandItem)) {
-		AMirrorLight* mirror = Cast<AMirrorLight>(_currentHandItem); 
-
-		if (mirror->_mirrorLightPositioned != nullptr) {
-			mirror->PositionLight(_hit.GetActor()->GetActorLocation());
-			_inventory->RemoveItem(_currentHandItem);
-
-			if (_myGameState != nullptr) {
-				if (_myGameState->GetPositionedMirrorLights()->Num() == 0) {
-					_myGameState->GetPositionedMirrorLights()->Add(mirror->_mirrorLightID);
-				}
-				else {
-					int value = _myGameState->GetPositionedMirrorLights()->Find(mirror->_mirrorLightID);
-					if (value == -1)
-						_myGameState->GetPositionedMirrorLights()->Add(mirror->_mirrorLightID);
-					else
-						_myGameState->GetPositionedMirrorLights()->Remove(mirror->_mirrorLightID);
-				}
-
-				if (_myGameState->GetPositionedMirrorLights()->Num() == 8)
-					_myGameState->ActivateMirrorLightSolution();
-			}
-
-			_currentHandItem = nullptr;
-			_bPositionActorPuzzle = false;
-			_bHoldingItem = !_bHoldingItem;
-		}
-	}
-
-	if (!_bHoldingItem) {
-		if (GetWorld()->LineTraceSingleByChannel(_hit, _start, _end, ECC_Visibility, _defaultComponentQueryParams, _defaultResponseParams)) {
-			// If the player has in sight an Interactive Item, the _currentItemInteractive save a pointer to that Actor.
-			if (_hit.GetActor()->GetClass()->IsChildOf(AItemInteractive::StaticClass()) && !_hit.GetActor()->ActorHasTag("EarthContinent"))
-				_currentItemInteractive = Cast<AItemInteractive>(_hit.GetActor());
-
-			// If the player has in sight an Physic Item, the _currentItemPhysic save a pointer to that Actor.
-			if (_hit.GetActor()->GetClass()->IsChildOf(AItemPhysic::StaticClass()) && !_hit.GetActor()->GetClass()->IsChildOf(AFlashlight::StaticClass())) 
-				_currentItemPhysic = Cast<AItemPhysic>(_hit.GetActor());
-
-			// If the player has in sight the Flashlight, the _flashlightItem save a pointer to that Actor.
-			if (_hit.GetActor()->GetClass()->IsChildOf(AFlashlight::StaticClass()))
-				_flashlightItem = Cast<AFlashlight>(_hit.GetActor());
-
-			// If the player has in sight the Piano Seat or the Earth Ball, the _currentChangeCameraItem will save a pointer to that Actor.
-			if (_hit.GetActor()->ActorHasTag("PianoSeat") || _hit.GetActor()->ActorHasTag("EarthBall"))
-				_currentChangeCameraItem = Cast<AActor>(_hit.GetActor());
-		} else {
-			// If the player doesn't has in sight any item, all the items are null.
-			_currentItemPhysic = nullptr;
-			_currentItemInteractive = nullptr;
-			_flashlightItem = nullptr;
-			_currentChangeCameraItem = nullptr;
-		}
-	}
-
-	if (_bInspecting) {
-		if (_bHoldingItem) {
-			// If it's pressing the inspecting key and it's holding any item, it will put the field of view to the screen.
-			_cameraComponent->SetFieldOfView(FMath::Lerp(_cameraComponent->FieldOfView, 90.f, 0.1f));
-
-			// Also we get a vector calculating where to put the item. In this case, in the middle of the screen.
-			FVector holdingComponentVector = (_cameraComponent->GetComponentLocation() + (_cameraComponent->GetForwardVector() * _itemInspectDistance));
-			_holdingComponent->SetWorldLocation(holdingComponentVector);
-
-			// We set the maximum and the minimum pith view to the highest possible values to be able to rotate the object 360�.
-			GetWorld()->GetFirstPlayerController()->PlayerCameraManager->ViewPitchMax = 179.9000002f;
-			GetWorld()->GetFirstPlayerController()->PlayerCameraManager->ViewPitchMin = -179.9000002f;
-
-			// If we are holding an Item, we will call his rotate function.
-			if (_currentHandItem != nullptr)
-				_currentHandItem->RotateItem();
-		}
-	} else {
-		// If it's not pressing the inspecting key we will put the field of view to the screen.
-		_cameraComponent->SetFieldOfView(FMath::Lerp(_cameraComponent->FieldOfView, 90.f, 0.1f));
-
-		// If it's not pressing the inspecting key and it's holding any item, it will put the item in the hand position.
-		if (_bHoldingItem) {
-			if (_currentHandItem != nullptr)
-				_currentHandItem->SetActorRotation(_holdingComponent->GetRelativeRotation());
-
-			_holdingComponent->SetRelativeLocation(FVector(50.f, -10.f, 20.f));
-		}
-	}
-
 	// Blend time of the camera (ASohpia::BlendWithCamera)
 	if (_myGameState->_onBlendTime > 0.0f)
 		_myGameState->_onBlendTime -= deltaTime;
-
-	if (_currentHandItem != nullptr) {
-		if (_currentHandItem->GetClass()->IsChildOf(AStair::StaticClass())) {
-			AStair* stair = Cast<AStair>(_currentHandItem);
-			TArray<AActor*> stairSearch;
-			UGameplayStatics::GetAllActorsWithTag(GetWorld(), "StairPositioned", stairSearch);
-
-			if (stair->_triggered) {
-				for (auto& result : stairSearch) {
-					result->SetActorHiddenInGame(false);
-					result->SetActorEnableCollision(false);
-				}
-			} else {
-				for (auto& result : stairSearch) {
-					result->SetActorHiddenInGame(true);
-					result->SetActorEnableCollision(true);
-				}
-			}
-		}
-	}
-
-	if (_currentHandItem != nullptr) {
-		if (Cast<AMirrorLight>(_currentHandItem) != nullptr) {
-			if (Cast<AMirrorLight>(_currentHandItem)->_mirrorLightPositioned != nullptr)
-				printFName(Cast<AMirrorLight>(_currentHandItem)->_mirrorLightPositioned->GetFName());
-			else
-				printText("nullptr");
-		}
-	}
 }
 
 void ASophia::SetupPlayerInputComponent(UInputComponent *playerInputComponent)
@@ -340,23 +218,18 @@ void ASophia::SetupPlayerInputComponent(UInputComponent *playerInputComponent)
 		EnhancedInputComponent->BindAction(_moveAction, ETriggerEvent::Triggered, this, &ASophia::Move);
 		EnhancedInputComponent->BindAction(_lookAction, ETriggerEvent::Triggered, this, &ASophia::Look);
 		EnhancedInputComponent->BindAction(_runOrCrouchAction, ETriggerEvent::Triggered, this, &ASophia::RunOrCrouch);
-		// Flashlight
-		EnhancedInputComponent->BindAction(_flashlightAction, ETriggerEvent::Triggered, this, &ASophia::Flashlight);
-		EnhancedInputComponent->BindAction(_rechargeFlashlightAction, ETriggerEvent::Triggered, this, &ASophia::RechargeFlashlight);
-		// Change Camera
-		EnhancedInputComponent->BindAction(_getUpAction, ETriggerEvent::Triggered, this, &ASophia::BlendWithCamera);
 		// Items slots
 		EnhancedInputComponent->BindAction(_changeItemMouseAction, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 10);
-		EnhancedInputComponent->BindAction(_changeHandItem0Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 0);
-		EnhancedInputComponent->BindAction(_changeHandItem1Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 1);
-		EnhancedInputComponent->BindAction(_changeHandItem2Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 2);
-		EnhancedInputComponent->BindAction(_changeHandItem3Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 3);
-		EnhancedInputComponent->BindAction(_changeHandItem4Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 4);
-		EnhancedInputComponent->BindAction(_changeHandItem5Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 5);
-		EnhancedInputComponent->BindAction(_changeHandItem6Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 6);
-		EnhancedInputComponent->BindAction(_changeHandItem7Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 7);
-		EnhancedInputComponent->BindAction(_changeHandItem8Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 8);
-		EnhancedInputComponent->BindAction(_changeHandItem9Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 9);
+		EnhancedInputComponent->BindAction(_changeHandItem1Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 0);
+		EnhancedInputComponent->BindAction(_changeHandItem2Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 1);
+		EnhancedInputComponent->BindAction(_changeHandItem3Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 2);
+		EnhancedInputComponent->BindAction(_changeHandItem4Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 3);
+		EnhancedInputComponent->BindAction(_changeHandItem5Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 4);
+		EnhancedInputComponent->BindAction(_changeHandItem6Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 5);
+		EnhancedInputComponent->BindAction(_changeHandItem7Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 6);
+		EnhancedInputComponent->BindAction(_changeHandItem8Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 7);
+		EnhancedInputComponent->BindAction(_changeHandItem9Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 8);
+		EnhancedInputComponent->BindAction(_changeHandItem0Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 9);
 		// Inventory and Items
 		EnhancedInputComponent->BindAction(_inventoryAction, ETriggerEvent::Triggered, this, &ASophia::Inventory);
 		EnhancedInputComponent->BindAction(_pickUpAction, ETriggerEvent::Triggered, this, &ASophia::OnAction);
@@ -382,41 +255,31 @@ void ASophia::Look(const FInputActionValue& value)
 {
 	FVector2D lookAxisValue = value.Get<FVector2D>();
 
-	if ((!_bInventoryOpen && Controller != nullptr && !_bInspecting) || (_bInspecting && !_bHoldingItem)) {
+	if ((!_bInventoryOpen && Controller != nullptr && !_inventory->_bInspecting) || (_inventory->_bInspecting && !_inventory->_bHoldingItem)) {
 		AddControllerYawInput(lookAxisValue.X * _cameraVelocity);
 		AddControllerPitchInput(-lookAxisValue.Y * _cameraVelocity);
 	}
 
-	if (_bInspecting && _currentHandItem != nullptr) {
+	if (_inventory->_bInspecting && _inventory->_currentHandItem != nullptr) {
 		FRotator sendRotator = Controller->GetControlRotation();
 		sendRotator.Yaw = -lookAxisValue.X;
 		sendRotator.Pitch = lookAxisValue.Y;
 
-		if (_currentHandItem != nullptr)
-			_currentHandItem->_controlRotation = sendRotator;
+		if (_inventory->_currentHandItem != nullptr)
+			if (Cast<IPickUpInterface>(_inventory->_currentHandItem))
+				Cast<IPickUpInterface>(_inventory->_currentHandItem)->_controlRotation = sendRotator;
 	}
 }
 
 void ASophia::RunOrCrouch(const FInputActionValue &value)
 {
+	// Activate the running or crouching status
 	_bRunningOrCrouching = value.Get<bool>();
-}
-
-void ASophia::Flashlight(const FInputActionValue &value)
-{
-	if (_currentHandItem != nullptr && _currentHandItem->GetClass()->IsChildOf(AFlashlight::StaticClass()))
-		Cast<AFlashlight>(_currentHandItem)->ToggleFlashlightOn();
-}
-
-void ASophia::RechargeFlashlight(const FInputActionValue &value)
-{
-	if (_currentHandItem != nullptr && _currentHandItem->GetClass()->IsChildOf(AFlashlight::StaticClass()))
-		Cast<AFlashlight>(_currentHandItem)->ToggleRechargingFlashlight();
 }
 
 void ASophia::Inventory(const FInputActionValue& value)
 {
-	if (IsLocallyControlled() && _inventoryHUDClass && !_bNoSwitchableItem) {
+	if (IsLocallyControlled() && _inventoryHUDClass && !_inventory->_currentHandItem->_bNoSwitchableItem) {
 		if (!_bInventoryOpen) {
 			// Show the inventory 
 			_inventoryHUD->AddToPlayerScreen();
@@ -439,103 +302,29 @@ void ASophia::Inventory(const FInputActionValue& value)
 
 void ASophia::OnAction(const FInputActionValue &value)
 {
-	if (_currentHandItem) {
-		if (_bNoSwitchableItem) {
-			if (_currentHandItem->GetClass()->IsChildOf(AStair::StaticClass())) {
-				AStair* stair = Cast<AStair>(_currentHandItem);
-				if (stair->_triggered) {
-					_inventory->RemoveItem(_currentHandItem);
-					_currentHandItem->Destroy();
-					_currentHandItem = nullptr;
-					_bHoldingItem = !_bHoldingItem;
-
-					TArray<AActor*> stairSearch;
-					UGameplayStatics::GetAllActorsWithTag(GetWorld(), "StairPositioned", stairSearch);
-
-					for (auto& result : stairSearch) {
-						result->SetActorHiddenInGame(false);
-						result->SetActorEnableCollision(true);
-						TArray<UActorComponent*> staticMeshComponents;
-						UStaticMeshComponent* staticMesh = FindComponentByClass<UStaticMeshComponent>();
-						staticMesh->SetMaterial(0, stair->_defaultMaterial);
-						_bNoSwitchableItem = false;
-					}
-				}
-			}
-		} else {
-			if (_currentHandItem->GetClass()->IsChildOf(AMirrorLight::StaticClass())) {
-				_bPositionActorPuzzle = true;
-			} else {
-				_bPositionActorPuzzle = false;
-				Cast<AMirrorLight>(_currentHandItem)->_mirrorLightPositioned->SetActorEnableCollision(true);
-				Cast<AMirrorLight>(_currentHandItem)->_mirrorLightPositioned = nullptr;
-			}
+	if (_inventory->_currentHandItem) {
+		if (IOnActionInterface* onActionItem = Cast<IOnActionInterface>(_inventory->_currentHandItem)) {
+			onActionItem->OnAction();
+			return;
 		}
-	} else if ((_currentItemPhysic || _flashlightItem)) {
-		if (_currentItemPhysic != nullptr) {
-			_inventory->AddItem(_currentItemPhysic);
-			_currentItemPhysic->PickUpItem();
-			_currentHandItem = _currentItemPhysic;
-			_bHoldingItem = !_bHoldingItem;
+	}
 
-			if (_currentItemPhysic->GetClass()->IsChildOf(AStair::StaticClass()))
-				_bNoSwitchableItem = true;
-
-			_currentItemPhysic = nullptr;
+	if (_inventory->_currentItemInSight) {
+		if (IInteractiveInterface* interactiveItem = Cast<IInteractiveInterface>(_inventory->_currentItemInSight)) {
+			interactiveItem->UseInteraction();
+		} else if (IPickUpInterface* pickUpItem = Cast<IPickUpInterface>(_inventory->_currentItemInSight)) {
+			pickUpItem->PickUpItem(_inventory->_currentItemInSight);
 		}
-		if (_flashlightItem != nullptr) {
-			_inventory->AddItem(_flashlightItem);
-			_flashlightItem->PickUpItem();
-			_currentHandItem = _flashlightItem;
-			_flashlightItem = nullptr;
-			_bHoldingItem = !_bHoldingItem;
+	} else if (_inventory->_flashlightItem) {
+		if (IPickUpInterface* flashlightItem = Cast<IPickUpInterface>(_inventory->_flashlightItem)) {
+			flashlightItem->PickUpItem(_inventory->_flashlightItem);
 		}
-	} else if (_currentItemInteractive) {
-		if (_currentItemInteractive->GetClass()->IsChildOf(APianoKey::StaticClass())) {
-			if (!_myGameState->GetPianoPuzzleSolved())
-				_currentItemInteractive->UseInteraction();
-		} else {
-			_currentItemInteractive->UseInteraction();
-		}
-	} else if (_currentChangeCameraItem) {
-		if (_currentChangeCameraItem->ActorHasTag("PianoSeat")) {
-			if (_myGameState->_onBlendTime <= 0.0f) {
-				// Blend of the character camera to the Piano camera.
-				_playerController->SetViewTargetWithBlend(_pianoCameraActor, 0.75f);
-				_myGameState->_onBlendTime = 0.75f;
-				_playerController->bShowMouseCursor = true;
-				_playerController->bEnableClickEvents = true;
-				_playerController->bEnableMouseOverEvents = true;
-			}
-		} else if (_currentChangeCameraItem->ActorHasTag("EarthBall")) {
-			if (_myGameState->_onBlendTime <= 0.0f) {
-				// Calculate the location and direction of the camera to center the sphere.
-				FVector playerViewDirection = _playerController->GetControlRotation().Vector();
-				float distanceBehindSphere = 220.0f;
-				FVector newCameraPosition = _currentChangeCameraItem->GetActorLocation() - (playerViewDirection * distanceBehindSphere);
-				_earthCameraActor->SetActorLocation(newCameraPosition);
-				FVector LookAtDirection = (_currentChangeCameraItem->GetActorLocation() - _earthCameraActor->GetActorLocation()).GetSafeNormal();
-				FRotator NewCameraRotation = LookAtDirection.Rotation();
-				_earthCameraActor->SetActorRotation(NewCameraRotation);
-
-				// Blend of the character camera to the Earth Ball camera.
-				_playerController->SetViewTargetWithBlend(_earthCameraActor, 0.75f);
-				_myGameState->_onBlendTime = 0.75f;
-				_playerController->bShowMouseCursor = true;
-				_playerController->bEnableClickEvents = true;
-				_playerController->bEnableMouseOverEvents = true;
-			}
-		}
-
-		// Removing the default mapping context and adding the new mapping context
-		if (APlayerController* PlayerController = Cast<APlayerController>(Controller)) {
-			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer())) {
-				Subsystem->RemoveMappingContext(_mainMappingContext);
-
-				if (_currentChangeCameraItem->ActorHasTag("PianoSeat"))
-					Subsystem->AddMappingContext(_pianoMappingContext, 0);
-				else if (_currentChangeCameraItem->ActorHasTag("EarthBall"))
-					Subsystem->AddMappingContext(_earthMappingContext, 0);
+	} else if (_inventory->_currentChangeCameraItem) {
+		if (AActorBlendCamera* changeCameraItem = Cast<AActorBlendCamera>(_inventory->_currentChangeCameraItem)) {
+			if (changeCameraItem->_cameraActorBlend) {
+				if (IInteractiveInterface* item = Cast<IInteractiveInterface>(changeCameraItem->_cameraActorBlend))				
+					printText("Camera actor blend");
+					//item->UseInteraction();
 			}
 		}
 	}
@@ -543,28 +332,26 @@ void ASophia::OnAction(const FInputActionValue &value)
 
 void ASophia::DropItem(const FInputActionValue& value)
 {
-	if (_currentHandItem != nullptr && !_bNoSwitchableItem) {
-		_inventory->RemoveItem(_currentHandItem);
-		_currentHandItem->DropItem();
-		_currentHandItem = nullptr;
-		_bHoldingItem = !_bHoldingItem;
-	}
+	if (_inventory->_currentHandItem != nullptr)
+		if (!_inventory->_currentHandItem->_bNoSwitchableItem)
+			if (Cast<IPickUpInterface>(_inventory->_currentHandItem))
+				Cast<IPickUpInterface>(_inventory->_currentHandItem)->DropItem(_inventory->_currentHandItem, _cameraComponent);
 }
 
 void ASophia::OnInspect(const FInputActionValue &value)
 {
-	_bInspectingPressed = !_bInspectingPressed;
+	/*_bInspectingPressed = !_bInspectingPressed;
 
-	if (_currentHandItem && !_bNoSwitchableItem) {
+	if (_inventory->_currentHandItem && !_inventory->_bNoSwitchableItem) {
 		if (_bInspectingPressed) {
-			if (_bHoldingItem) {
+			if (_inventory->_bHoldingItem) {
 				_lastRotation = GetControlRotation();
 				ToggleMovement();
 			} else {
 				_bInspecting = true;
 			}
 		} else {
-			if (_bInspecting && _bHoldingItem) {
+			if (_bInspecting && _inventory->_bHoldingItem) {
 				GetController()->SetControlRotation(_lastRotation);
 				GetWorld()->GetFirstPlayerController()->PlayerCameraManager->ViewPitchMax = _pitchMax;
 				GetWorld()->GetFirstPlayerController()->PlayerCameraManager->ViewPitchMin = _pitchMin;
@@ -573,18 +360,18 @@ void ASophia::OnInspect(const FInputActionValue &value)
 				_bInspecting = false;
 			}
 		}
-	}
+	}*/
 }
 
 void ASophia::ToggleMovement()
 {
 	_bCanMove = !_bCanMove;
-	_bInspecting = !_bInspecting;
+	//_bInspecting = !_bInspecting;
 	_cameraComponent->bUsePawnControlRotation = ~_cameraComponent->bUsePawnControlRotation;
 	bUseControllerRotationYaw = ~bUseControllerRotationYaw;
 }
 
-void ASophia::BlendWithCamera(const FInputActionValue &value)
+void ASophia::BlendBackWithCamera(const FInputActionValue &value)
 {
 	if (_myGameState->_onBlendTime <= 0.0f) {
 		_playerController->SetViewTargetWithBlend(this, 0.75f);
@@ -639,9 +426,10 @@ void ASophia::ClickInteractive(const FInputActionValue &value)
 	FVector worldLocation, worldDirection;
 	_playerController->DeprojectScreenPositionToWorld(mousePosition.X, mousePosition.Y, worldLocation, worldDirection);
 
-	if (GetWorld()->LineTraceSingleByChannel(_hit, worldLocation, worldLocation + worldDirection * 350.f, ECC_Selectable, _defaultComponentQueryParams, _defaultResponseParams)) {
+	FHitResult _hit;
+	if (GetWorld()->LineTraceSingleByChannel(_hit, worldLocation, worldLocation + worldDirection * 350.f, ECC_Selectable, FCollisionQueryParams::DefaultQueryParam, FCollisionResponseParams::DefaultResponseParam)) {
 		if (_hit.GetActor()->ActorHasTag("EarthContinent")) {
-			AItemInteractive* mesh = Cast<AItemInteractive>(_hit.GetActor());
+			IInteractiveInterface* mesh = Cast<IInteractiveInterface>(_hit.GetActor());
 			mesh->UseInteraction();
 		}
 	}

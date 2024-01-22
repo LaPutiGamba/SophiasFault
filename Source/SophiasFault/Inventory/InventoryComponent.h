@@ -15,8 +15,15 @@ class SOPHIASFAULT_API UInventoryComponent : public UActorComponent
 public:	
 	UInventoryComponent();
 
-	UPROPERTY(EditAnywhere)
-	UStaticMesh* prueba;
+	class UCameraComponent* _cameraComponent;
+	class USceneComponent* _holdingComponent;
+
+	float _itemInspectDistance;
+
+	FHitResult _hit;
+	FVector _start;
+	FVector _forwardVector;
+	FVector _end;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
 	int32 _capacity;
@@ -25,22 +32,25 @@ public:
 	FOnInventoryUpdated _onInventoryUpdated;
 
 	UPROPERTY(EditAnywhere, Category = "Items")
-	TArray<class AItemPhysic*> _items;
+	TArray<class AItem*> _items;
 
 	int _currentItemSlotIndex;
 
-	class AItemPhysic* _currentHandItem;
+	class AItem* _currentHandItem;
+	class AItem* _currentItemInSight;
+	class AActorBlendCamera* _currentChangeCameraItem;
+	class AFlashlight* _flashlightItem;
 
 	bool _bHoldingItem;
-	bool _bNoSwitchableItem;
+	bool _bInspecting;
 
 	virtual void BeginPlay() override;
+	virtual void TickComponent(float deltaTime, enum ELevelTick tickType, FActorComponentTickFunction* thisTickFunction) override;
+	bool AddItem(class AItem* item);
+	bool RemoveItem(class AItem* item, bool deleteCurrentHandItem = true);
 
-	bool AddItem(class AItemPhysic* item);
-	bool RemoveItem(class AItemPhysic* item);
-
-	void SetCurrentHandItem(class AItemPhysic* item) { _currentHandItem = item; };
-	class AItemPhysic* GetCurrentHandItem() { return _currentHandItem; };
+	void SetCurrentHandItem(class AItem* item) { _currentHandItem = item; };
+	class AItem* GetCurrentHandItem() { return _currentHandItem; };
 
 	void ChangeCurrentHandItem(const FInputActionValue& value, int index);
 };

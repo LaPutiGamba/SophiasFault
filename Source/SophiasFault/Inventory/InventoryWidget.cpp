@@ -5,8 +5,7 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Components/TextBlock.h"
 #include "InventoryComponent.h"
-#include "Items/Item.h"
-#include "Items/ItemPhysic.h"
+#include "Item.h"
 #include "Kismet/KismetMathLibrary.h" 
 
 // https://dev.epicgames.com/community/learning/tutorials/KJ9e/unreal-engine-arranging-widgets-in-a-circle

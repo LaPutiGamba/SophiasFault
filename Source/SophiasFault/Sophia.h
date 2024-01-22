@@ -115,8 +115,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* _rechargeFlashlightAction;
-
-	class AFlashlight* _flashlightItem;
 	/* --------------------------------------------- */
 
 
@@ -147,7 +145,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* _changeHandItem9Action;
 
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
 	class UInventoryComponent* _inventory;
 
@@ -164,46 +161,19 @@ protected:
 
 
 	/* ----- Items ----- */
-	UPROPERTY(EditAnywhere)
+	AActor* _currentChangeCameraItem;
+
 	class USceneComponent* _holdingComponent;
 	class USceneComponent* _attachComponent;
 
-	UPROPERTY(EditAnywhere)
-	class AItemPhysic* _currentItemPhysic;
-	UPROPERTY(EditAnywhere)
-	class AItemInteractive* _currentItemInteractive;
-	UPROPERTY(EditAnywhere)
-	class AActor* _currentChangeCameraItem;
-	UPROPERTY(EditAnywhere)
-	class AItemPhysic* _currentHandItem;
-
 	bool _bCanMove;
-	bool _bHoldingItem;
-	bool _bInspecting;
 	bool _bInspectingPressed;
-	bool _bNoSwitchableItem;
-	bool _bPositionActorPuzzle;
 
 	float _pitchMax;
 	float _pitchMin;
-	float _itemInspectDistance;
 
 	FRotator _lastRotation;
-
-	FVector _start;
-	FVector _forwardVector;
-	FVector _end;
-
-	FHitResult _hit;
-
-	FComponentQueryParams _defaultComponentQueryParams;
-	FCollisionResponseParams _defaultResponseParams;
 	/* ----------------- */
-
-
-	/* ----- Puzzle variables ----- */
-
-	/* ---------------------------- */
 
 /************* FUNCTIONS *************/
 public:
@@ -216,6 +186,9 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* playerInputComponent) override;
 
+	// Get the camera component
+	UCameraComponent* GetCameraComponent() { return _cameraComponent; }
+
 	// Get the inventory component
 	class UInventoryComponent* GetInventory() { return _inventory; }
 
@@ -223,7 +196,9 @@ public:
 	TSubclassOf<class UUserWidget> GetItemWidgetClass() { return _inventoryItemsClass; }
 
 	// Get the current hand item
-	class AItemPhysic* GetCurrentHandItem() { return _currentHandItem; }
+	class AItem* GetCurrentHandItem();
+
+	class USceneComponent* GetHoldingComponent() { return _holdingComponent; }
 
 protected:
 	// Called when the game starts or when spawned
@@ -234,10 +209,6 @@ protected:
 	void Look(const FInputActionValue& value);
 
 	void RunOrCrouch(const FInputActionValue& value);
-
-	void Flashlight(const FInputActionValue& value);
-
-	void RechargeFlashlight(const FInputActionValue& value);
 
 	void Inventory(const FInputActionValue& value);
 
@@ -253,7 +224,7 @@ protected:
 
 	void OnInspect(const FInputActionValue& value);
 
-	void BlendWithCamera(const FInputActionValue& value);
+	void BlendBackWithCamera(const FInputActionValue& value);
 
 	void ToggleMovement();
 };

@@ -21,11 +21,11 @@ private:
 	TArray<uint8> _positionedMirrorLights;
 
 public:
-	float _onBlendTime;
-
 	AGMS_MyGameStateBase();
 
 	virtual void BeginPlay() override;
+	
+	float _onBlendTime;
 
 	// AI functions
 	void SetOnChase(bool value) { _bOnChase = value; }
