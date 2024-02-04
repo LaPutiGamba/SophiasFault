@@ -13,9 +13,15 @@ class SOPHIASFAULT_API APianoCamera : public ACameraBlend
 public:
     APianoCamera();
 
-	FInputBindingHandle* _bindingHandle;
+	FInputBindingHandle* _getUpHandle;
+	FInputBindingHandle* _clickInteractiveHandle;
+
+	UPROPERTY(EditAnywhere, Category = "Mapping Context")
+	class UInputAction* _clickInteractiveAction;
 
 	virtual void UseInteraction() override;
 
 	virtual void BlendBack() override;
+
+	void ClickInteractive(const FInputActionValue& value);
 };

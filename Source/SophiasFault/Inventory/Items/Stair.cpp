@@ -16,9 +16,9 @@ void AStair::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (_finalPoistion) {
-		_finalPoistion->SetActorHiddenInGame(true);
-		_finalPoistion->SetActorEnableCollision(false);
+	if (_finalPosition) {
+		_finalPosition->SetActorHiddenInGame(true);
+		_finalPosition->SetActorEnableCollision(false);
 	}
 }
 
@@ -30,11 +30,10 @@ void AStair::OnAction()
 		_owningInventory->_currentHandItem = nullptr;
 		_owningInventory->_bHoldingItem = !_owningInventory->_bHoldingItem;
 
-		_finalPoistion->SetActorHiddenInGame(false);
-		_finalPoistion->SetActorEnableCollision(true);
-		UStaticMeshComponent* staticMesh = _finalPoistion->GetComponentByClass<UStaticMeshComponent>();
+		_finalPosition->SetActorHiddenInGame(false);
+		_finalPosition->SetActorEnableCollision(true);
+		UStaticMeshComponent* staticMesh = _finalPosition->GetComponentByClass<UStaticMeshComponent>();
 		staticMesh->SetMaterial(0, _defaultMaterial);
 		_bNoSwitchableItem = false;
 	}
-
 }

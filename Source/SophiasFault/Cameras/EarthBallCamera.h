@@ -12,7 +12,14 @@ class SOPHIASFAULT_API AEarthBallCamera : public ACameraBlend
 public:
 	AEarthBallCamera();
 
-	FInputBindingHandle* _bindingHandle;
+	FInputBindingHandle* _getUpHandle;
+	FInputBindingHandle* _clickInteractiveHandle;
+	FInputBindingHandle* _clickRotationHandle;
+
+	UPROPERTY(EditAnywhere, Category = "Mapping Context")
+	class UInputAction* _clickInteractiveAction;
+	UPROPERTY(EditAnywhere, Category = "Mapping Context")
+	class UInputAction* _clickRotationAction;
 
 	UPROPERTY(EditAnywhere, Category = "Earth Puzzle")
 	FVector _earthBallLocation;
@@ -20,4 +27,7 @@ public:
 	virtual void UseInteraction() override;
 
 	virtual void BlendBack() override;
+
+	void EarthRotation(const FInputActionValue& value);
+	void ClickInteractive(const FInputActionValue& value);
 };

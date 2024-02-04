@@ -1,9 +1,12 @@
 #include "CameraBlend.h"
+#include "../Macros.h"
+#include "../Sophia.h"
 
 ACameraBlend::ACameraBlend()
 {
 	_playerController = nullptr;
 	_myGameState = nullptr;
+	_enhancedInputComponent = nullptr;
 }
 
 void ACameraBlend::BeginPlay()
@@ -11,14 +14,23 @@ void ACameraBlend::BeginPlay()
 	Super::BeginPlay();
 
 	_playerController = GetWorld()->GetFirstPlayerController();
+	_sophia = Cast<ASophia>(_playerController->GetPawn());
 	_myGameState = Cast<AGMS_MyGameStateBase>(GetWorld()->GetGameState());
 
-	UEnhancedInputComponent* enhancedInputComponent = Cast<UEnhancedInputComponent>(_playerController->InputComponent);
+	_enhancedInputComponent = Cast<UEnhancedInputComponent>(_playerController->InputComponent);
+}
+
+void ACameraBlend::UseInteraction() 
+{
+	if (UEnhancedInputLocalPlayerSubsystem* subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(_playerController->GetLocalPlayer())) {
+		subsystem->RemoveMappingContext(_mainMappingContext);
+		subsystem->AddMappingContext(_puzzleMappingContext, 0);
+	}
 }
 
 void ACameraBlend::BlendBack()
 {
-	_playerController->SetViewTargetWithBlend(_playerController->GetViewTarget(), 0.75f);
+	_playerController->SetViewTargetWithBlend(_sophia, 0.75f);
 	_myGameState->_onBlendTime = 0.75f;
 	_playerController->bShowMouseCursor = false;
 	_playerController->bEnableClickEvents = false;

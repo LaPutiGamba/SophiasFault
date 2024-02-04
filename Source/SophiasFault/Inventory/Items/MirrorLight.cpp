@@ -1,6 +1,7 @@
 #include "MirrorLight.h"
 #include "Curves/CurveVector.h" 
 #include "Camera/CameraComponent.h"
+#include "./MirrorSolution.h"
 #include "../../Core/GMS_MyGameStateBase.h"
 #include "../../Macros.h"
 
@@ -13,6 +14,7 @@ AMirrorLight::AMirrorLight()
 	_mirrorLightID = 0;
 
 	_timelineComponent = CreateDefaultSubobject<UTimelineComponent>(TEXT("TimelineComponent"));
+	_curveVector = CreateDefaultSubobject<UCurveVector>(TEXT("CurveVector"));
 }
 
 void AMirrorLight::BeginPlay()
@@ -39,6 +41,27 @@ void AMirrorLight::Tick(float deltaTime)
 	_timelineComponent->TickComponent(deltaTime, ELevelTick::LEVELTICK_TimeOnly, NULL);
 }
 
+void AMirrorLight::PickUpItem(AItem* item)
+{
+	IPickUpInterface::PickUpItem(item);
+
+	if (_myGameState != nullptr) {
+		for (int i = 0; i < _myGameState->GetPositionedMirrorLights()->Num(); i++) {
+			if (_myGameState->GetPositionedMirrorLights()->IsValidIndex(i)) {
+				if (_myGameState->GetPositionedMirrorLights()->operator[](i) == _mirrorLightID) {
+					_myGameState->GetPositionedMirrorLights()->operator[](i) = 0;
+
+					if (_mirrorLightPositioned != nullptr) {
+						_mirrorLightPositioned->SetActorEnableCollision(true);
+						_mirrorLightPositioned = nullptr;
+					}
+					break;
+				}
+			}
+		}
+	}
+}
+
 void AMirrorLight::ControlMirrorLight(FVector value)
 {
 	_timelineValue = _timelineComponent->GetPlaybackPosition();
@@ -62,9 +85,9 @@ void AMirrorLight::PositionLight(FVector placeablePosition)
 	_curveVector->FloatCurves[2].UpdateOrAddKey(0.f, _itemComponent->GetComponentLocation().Z);
 
 	// Add last key with the light finish position
-	_curveVector->FloatCurves[0].UpdateOrAddKey(5.f, placeablePosition.X);
-	_curveVector->FloatCurves[1].UpdateOrAddKey(5.f, placeablePosition.Y);
-	_curveVector->FloatCurves[2].UpdateOrAddKey(5.f, placeablePosition.Z);
+	_curveVector->FloatCurves[0].UpdateOrAddKey(10.f, placeablePosition.X);
+	_curveVector->FloatCurves[1].UpdateOrAddKey(10.f, placeablePosition.Y);
+	_curveVector->FloatCurves[2].UpdateOrAddKey(10.f, placeablePosition.Z);
 
 	// Activate the cubic interpolation mode
 	for (int i = 0; i < 3; i++) {
@@ -76,11 +99,15 @@ void AMirrorLight::PositionLight(FVector placeablePosition)
 	}
 
 	_meshComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	_owningInventory->RemoveItem(this);
 	_timelineComponent->PlayFromStart();
 }
 
 void AMirrorLight::OnAction()
 {
+	if (_timelineComponent->IsPlaying())
+		return;
+
 	FHitResult hit;
 	FVector start, forwardVector, end;
 	if (_playerCamera != nullptr)
@@ -94,27 +121,22 @@ void AMirrorLight::OnAction()
 			_mirrorLightPositioned = hit.GetActor();
 
 			if (_mirrorLightPositioned != nullptr) {
+				_mirrorLightPositioned->SetActorEnableCollision(false);
+
 				PositionLight(_mirrorLightPositioned->GetActorLocation());
-				_owningInventory->RemoveItem(this);
 
 				if (_myGameState != nullptr) {
-					if (_myGameState->GetPositionedMirrorLights()->Num() == 0) {
-						_myGameState->GetPositionedMirrorLights()->Add(_mirrorLightID);
+					for (int i = 0; i < _myGameState->GetPositionedMirrorLights()->Num(); i++) {
+						FName tag = FName(*FString::Printf(TEXT("MirrorLightPosition%d"), i + 1));
+						printFName(tag);
+						if (_mirrorLightPositioned->ActorHasTag(tag)) {
+							_myGameState->GetPositionedMirrorLights()->operator[](i) = _mirrorLightID;
+							break;
+						}
 					}
-					else {
-						int value = _myGameState->GetPositionedMirrorLights()->Find(_mirrorLightID);
-						if (value == -1)
-							_myGameState->GetPositionedMirrorLights()->Add(_mirrorLightID);
-						else
-							_myGameState->GetPositionedMirrorLights()->Remove(_mirrorLightID);
-					}
-
-					if (_myGameState->GetPositionedMirrorLights()->Num() == 8)
-						_myGameState->ActivateMirrorLightSolution();
 				}
 
 				_owningInventory->_currentHandItem = nullptr;
-				_owningInventory->_bHoldingItem = !_owningInventory->_bHoldingItem;
 			}
 		} else {
 			_mirrorLightPositioned = nullptr;

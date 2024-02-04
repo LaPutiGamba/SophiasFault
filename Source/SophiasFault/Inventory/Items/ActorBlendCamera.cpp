@@ -3,5 +3,5 @@
 
 AActorBlendCamera::AActorBlendCamera()
 {
-	_staticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Static Mesh Component"));
+	_meshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Static Mesh Component"));
 }

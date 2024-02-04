@@ -45,7 +45,6 @@ public:
 	TArray<uint8>* GetSelectedContinents() { return &_selectedContinents; }
 	void ActivateEarthSolution();
 
-	// Mirror lights functions
+	// Mirror Light functions
 	TArray<uint8>* GetPositionedMirrorLights() { return &_positionedMirrorLights; }
-	void ActivateMirrorLightSolution();
 };

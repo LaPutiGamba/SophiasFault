@@ -14,8 +14,8 @@ public:
 	AActorBlendCamera();
 
 	UPROPERTY(EditAnywhere, Category = "Mesh")
-	class UStaticMeshComponent* _staticMeshComponent;
+	class UStaticMeshComponent* _meshComponent;
 
 	UPROPERTY(EditAnywhere, Category = "Camera Actor Blend")
-	TSubclassOf<ACameraBlend> _cameraActorBlend;
+	ACameraBlend* _cameraActorBlend;
 };

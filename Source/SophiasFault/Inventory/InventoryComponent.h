@@ -15,10 +15,14 @@ class SOPHIASFAULT_API UInventoryComponent : public UActorComponent
 public:	
 	UInventoryComponent();
 
+	class APlayerController* _playerController;
 	class UCameraComponent* _cameraComponent;
 	class USceneComponent* _holdingComponent;
 
+	float _pitchMax;
+	float _pitchMin;
 	float _itemInspectDistance;
+	FRotator _lastRotation;
 
 	FHitResult _hit;
 	FVector _start;
@@ -43,6 +47,7 @@ public:
 
 	bool _bHoldingItem;
 	bool _bInspecting;
+	bool _bInspectingPressed;
 
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float deltaTime, enum ELevelTick tickType, FActorComponentTickFunction* thisTickFunction) override;
@@ -53,4 +58,6 @@ public:
 	class AItem* GetCurrentHandItem() { return _currentHandItem; };
 
 	void ChangeCurrentHandItem(const FInputActionValue& value, int index);
+
+	void InspectItem(const FInputActionValue& value);
 };

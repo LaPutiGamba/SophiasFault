@@ -27,10 +27,10 @@ public:
 
 	virtual void Tick(float deltaTime) override;
 
+	virtual void PickUpItem(class AItem* item) override;
+
 	// TIMELINE
 	class UTimelineComponent* _timelineComponent;
-
-	UPROPERTY(EditAnywhere, Category = "Timeline")
 	class UCurveVector* _curveVector;
 
 	float _timelineValue;
