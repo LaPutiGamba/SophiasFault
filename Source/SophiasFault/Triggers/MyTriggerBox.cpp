@@ -1,7 +1,7 @@
 #include "MyTriggerBox.h"
 #include "../Macros.h"
 #include "../Sophia.h"
-#include "../Inventory/Items/PhysicItems/Stair.h"
+#include "../Inventory/Items/Stair.h"
 
 AMyTriggerBox::AMyTriggerBox()
 {

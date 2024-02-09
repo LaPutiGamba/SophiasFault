@@ -1,15 +1,16 @@
 #include "GMS_MyGameStateBase.h"
 #include "../Macros.h"
 #include "Kismet/GameplayStatics.h"
-#include "../Inventory/Items/Item.h"
-#include "../Inventory/Items/InteractiveItems/EarthContinent.h"
-#include "../Inventory/Items/PhysicItems/MirrorLight.h"
+#include "../Inventory/Item.h"
+#include "../Inventory/Items/EarthContinent.h"
+#include "../Inventory/Items/MirrorLight.h"
 
 AGMS_MyGameStateBase::AGMS_MyGameStateBase()
 {
 	_bOnChase = false;
 	_bPianoPuzzleSolved = false;
-
+	_onBlendTime = 0.f;
+		
 	const uint8 PianoResult[] = { 1, 3, 3, 5, 8, 10, 13, 11, 9, 5, 1 };
 	_pianoKeysResult.Append(PianoResult, UE_ARRAY_COUNT(PianoResult));
 }
@@ -18,7 +19,7 @@ void AGMS_MyGameStateBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	_bOnChase = true;
+	_bOnChase = false;
 }
 
 void AGMS_MyGameStateBase::ActivatePianoSolution()
