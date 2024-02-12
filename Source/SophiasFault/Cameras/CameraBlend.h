@@ -2,14 +2,14 @@
 
 #include "CoreMinimal.h"
 #include "Camera/CameraActor.h"
-#include "../Interfaces/InteractiveInterface.h"
+#include "../Interfaces/CameraBlendInterface.h"
 #include "../Core/GMS_MyGameStateBase.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "CameraBlend.generated.h"
 
 UCLASS()
-class SOPHIASFAULT_API ACameraBlend : public ACameraActor, public IInteractiveInterface
+class SOPHIASFAULT_API ACameraBlend : public ACameraActor, public ICameraBlendInterface
 {
 	GENERATED_BODY()
 	
@@ -18,7 +18,9 @@ public:
 
 	virtual void BeginPlay() override;
 
-	virtual void BlendBack();
+	virtual void UseInteraction() override;
+
+	virtual void BlendBack() override;
 
 	UEnhancedInputComponent* _enhancedInputComponent;
 
@@ -32,5 +34,6 @@ public:
 	class UInputMappingContext* _puzzleMappingContext;
 
 	APlayerController* _playerController;
+	class ASophia* _sophia;
 	class AGMS_MyGameStateBase* _myGameState;
 };

@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "../Item.h"
+#include "DoorKey.h"
 #include "../../Interfaces/InteractiveInterface.h"
 #include "Door.generated.h"
 
@@ -19,6 +20,8 @@ public:
 	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* _doorFrameComponent;
 
+	class ASophia* _sophiaCharacter;
+
 	UPROPERTY(EditAnywhere, Category = "Timeline")
 	class UCurveFloat* _curveFloat;
 
@@ -27,9 +30,17 @@ public:
 	bool _readyState;
 	bool _openState;
 
-	float _rotateValue;
+	UPROPERTY(EditAnywhere, Category = "Door")
+	bool _doorOpened;
+
+	UPROPERTY(EditAnywhere, Category = "Door")
+	bool _rotateDirection;
+
 	float _timelineValue;
 	float _curveFloatValue;
+
+	UPROPERTY(EditAnywhere, Category = "Door")
+	uint8 _keyID;
 
 	virtual void BeginPlay() override;
 

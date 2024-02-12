@@ -13,6 +13,7 @@
 #include "Interfaces/InteractiveInterface.h"
 #include "Interfaces/PickUpInterface.h"
 #include "Interfaces/OnActionInterface.h"
+#include "Interfaces/CameraBlendInterface.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Blueprint/UserWidget.h"
@@ -72,14 +73,6 @@ ASophia::ASophia()
 	_holdingComponent->SetupAttachment(_attachComponent);
 
 	_bCanMove = true;
-	_bInspectingPressed = false;
-
-	// Init of PUZZLE variables
-}
-
-AItem* ASophia::GetCurrentHandItem()
-{
-	return _inventory->_currentHandItem;
 }
 
 void ASophia::BeginPlay()
@@ -92,11 +85,6 @@ void ASophia::BeginPlay()
 		if (UEnhancedInputLocalPlayerSubsystem *Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(_playerController->GetLocalPlayer()))
 			Subsystem->AddMappingContext(_mainMappingContext, 0);
 	}
-
-	if (GetWorld()->GetFirstPlayerController()->PlayerCameraManager)
-		_pitchMax = GetWorld()->GetFirstPlayerController()->PlayerCameraManager->ViewPitchMax;
-	if (GetWorld()->GetFirstPlayerController()->PlayerCameraManager)
-		_pitchMin = GetWorld()->GetFirstPlayerController()->PlayerCameraManager->ViewPitchMin;
 	
 	TArray<AActor*> pianoCameraSearch;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), "PianoCamera", pianoCameraSearch);
@@ -234,10 +222,7 @@ void ASophia::SetupPlayerInputComponent(UInputComponent *playerInputComponent)
 		EnhancedInputComponent->BindAction(_inventoryAction, ETriggerEvent::Triggered, this, &ASophia::Inventory);
 		EnhancedInputComponent->BindAction(_pickUpAction, ETriggerEvent::Triggered, this, &ASophia::OnAction);
 		EnhancedInputComponent->BindAction(_dropItemAction, ETriggerEvent::Triggered, this, &ASophia::DropItem);
-		EnhancedInputComponent->BindAction(_inspectAction, ETriggerEvent::Triggered, this, &ASophia::OnInspect);
-		// Earth Puzzle
-		EnhancedInputComponent->BindAction(_clickRotationAction, ETriggerEvent::Triggered, this, &ASophia::EarthRotation);
-		EnhancedInputComponent->BindAction(_clickInteractiveAction, ETriggerEvent::Triggered, this, &ASophia::ClickInteractive);
+		EnhancedInputComponent->BindAction(_inspectAction, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::InspectItem);
 	}
 }
 
@@ -279,7 +264,7 @@ void ASophia::RunOrCrouch(const FInputActionValue &value)
 
 void ASophia::Inventory(const FInputActionValue& value)
 {
-	if (IsLocallyControlled() && _inventoryHUDClass && !_inventory->_currentHandItem->_bNoSwitchableItem) {
+	if (IsLocallyControlled() && _inventoryHUDClass/* && !_inventory->_currentHandItem->_bNoSwitchableItem*/) {
 		if (!_bInventoryOpen) {
 			// Show the inventory 
 			_inventoryHUD->AddToPlayerScreen();
@@ -322,9 +307,13 @@ void ASophia::OnAction(const FInputActionValue &value)
 	} else if (_inventory->_currentChangeCameraItem) {
 		if (AActorBlendCamera* changeCameraItem = Cast<AActorBlendCamera>(_inventory->_currentChangeCameraItem)) {
 			if (changeCameraItem->_cameraActorBlend) {
-				if (IInteractiveInterface* item = Cast<IInteractiveInterface>(changeCameraItem->_cameraActorBlend))				
-					printText("Camera actor blend");
-					//item->UseInteraction();
+				if (IInteractiveInterface* cameraItem = Cast<IInteractiveInterface>(changeCameraItem)) {
+					cameraItem->UseInteraction();
+				}
+
+				if (ICameraBlendInterface* item = Cast<ICameraBlendInterface>(changeCameraItem->_cameraActorBlend)) {
+					item->UseInteraction();
+				}
 			}
 		}
 	}
@@ -338,99 +327,15 @@ void ASophia::DropItem(const FInputActionValue& value)
 				Cast<IPickUpInterface>(_inventory->_currentHandItem)->DropItem(_inventory->_currentHandItem, _cameraComponent);
 }
 
-void ASophia::OnInspect(const FInputActionValue &value)
-{
-	/*_bInspectingPressed = !_bInspectingPressed;
-
-	if (_inventory->_currentHandItem && !_inventory->_bNoSwitchableItem) {
-		if (_bInspectingPressed) {
-			if (_inventory->_bHoldingItem) {
-				_lastRotation = GetControlRotation();
-				ToggleMovement();
-			} else {
-				_bInspecting = true;
-			}
-		} else {
-			if (_bInspecting && _inventory->_bHoldingItem) {
-				GetController()->SetControlRotation(_lastRotation);
-				GetWorld()->GetFirstPlayerController()->PlayerCameraManager->ViewPitchMax = _pitchMax;
-				GetWorld()->GetFirstPlayerController()->PlayerCameraManager->ViewPitchMin = _pitchMin;
-				ToggleMovement();
-			} else {
-				_bInspecting = false;
-			}
-		}
-	}*/
-}
-
-void ASophia::ToggleMovement()
+void ASophia::ToggleMovement(bool& bInspecting)
 {
 	_bCanMove = !_bCanMove;
-	//_bInspecting = !_bInspecting;
+	bInspecting = !bInspecting;
 	_cameraComponent->bUsePawnControlRotation = ~_cameraComponent->bUsePawnControlRotation;
 	bUseControllerRotationYaw = ~bUseControllerRotationYaw;
 }
 
-void ASophia::BlendBackWithCamera(const FInputActionValue &value)
+AItem* ASophia::GetCurrentHandItem()
 {
-	if (_myGameState->_onBlendTime <= 0.0f) {
-		_playerController->SetViewTargetWithBlend(this, 0.75f);
-		_myGameState->_onBlendTime = 0.75f;
-		_playerController->bShowMouseCursor = false;
-		_playerController->bEnableClickEvents = false;
-		_playerController->bEnableMouseOverEvents = false;
-
-		if (APlayerController* PlayerController = Cast<APlayerController>(Controller)) {
-			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer())) {
-				if (_currentChangeCameraItem->ActorHasTag("PianoSeat")) {
-					Subsystem->RemoveMappingContext(_pianoMappingContext);
-				} else if (_currentChangeCameraItem->ActorHasTag("EarthBall")) {
-					Subsystem->RemoveMappingContext(_earthMappingContext);	
-					FVector2D screenPosition;
-					FVector worldLocation;
-					_playerController->ProjectWorldLocationToScreen(worldLocation, screenPosition);
-				}
-
-				Subsystem->AddMappingContext(_mainMappingContext, 0);
-			}
-		}
-	}
-}
-
-void ASophia::EarthRotation(const FInputActionValue& value)
-{
-	FVector2D mousePosition;
-	_playerController->GetMousePosition(mousePosition.X, mousePosition.Y);
-	FVector2D screenSize;
-	GEngine->GameViewport->GetViewportSize(screenSize);
-
-	//_playerController->
-
-	FRotator sendRotator = FRotator::ZeroRotator;
-	
-	if (((mousePosition.X - (screenSize.X / 2)) > 30.f || (mousePosition.X - (screenSize.X / 2)) < -30.f) ||
-		((mousePosition.Y - (screenSize.Y / 2)) > 30.f || (mousePosition.Y - (screenSize.Y / 2)) < -30.f)) {
-		sendRotator.Yaw = -((mousePosition.X - (screenSize.X / 2)) / screenSize.X) * 1.25f;
-		sendRotator.Pitch = ((mousePosition.Y - (screenSize.Y / 2)) / screenSize.Y) * 1.25f;
-	}
-
-	if (_currentChangeCameraItem != nullptr)
-		_currentChangeCameraItem->SetActorRelativeRotation(_currentChangeCameraItem->GetActorRotation() + sendRotator);
-}
-
-void ASophia::ClickInteractive(const FInputActionValue &value)
-{
-	FVector2D mousePosition;
-	_playerController->GetMousePosition(mousePosition.X, mousePosition.Y);
-
-	FVector worldLocation, worldDirection;
-	_playerController->DeprojectScreenPositionToWorld(mousePosition.X, mousePosition.Y, worldLocation, worldDirection);
-
-	FHitResult _hit;
-	if (GetWorld()->LineTraceSingleByChannel(_hit, worldLocation, worldLocation + worldDirection * 350.f, ECC_Selectable, FCollisionQueryParams::DefaultQueryParam, FCollisionResponseParams::DefaultResponseParam)) {
-		if (_hit.GetActor()->ActorHasTag("EarthContinent")) {
-			IInteractiveInterface* mesh = Cast<IInteractiveInterface>(_hit.GetActor());
-			mesh->UseInteraction();
-		}
-	}
+	return _inventory->_currentHandItem;
 }

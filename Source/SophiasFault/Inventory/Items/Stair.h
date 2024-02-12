@@ -23,7 +23,7 @@ public:
 	class ATriggerBox* _triggerBox;
 
 	UPROPERTY(EditAnywhere)
-	class AActor* _finalPoistion;
+	class AActor* _finalPosition;
 
 	UPROPERTY(EditAnywhere)
 	class UMaterialInterface* _defaultMaterial;

@@ -1,21 +1,20 @@
 #pragma once
 
 #include "../Item.h"
-#include "../../Interfaces/InteractiveInterface.h"
 #include "PianoKey.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class SOPHIASFAULT_API APianoKey : public AItem, public IInteractiveInterface
+class SOPHIASFAULT_API APianoKey : public AItem
 {
 	GENERATED_BODY()
 
 public:
 	APianoKey();
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Piano")
 	uint8 _pianoKeyID;
 
 	UPROPERTY(EditAnywhere, Category = "Timeline")
@@ -28,6 +27,9 @@ public:
 	float _timelineValue;
 	float _curveFloatValue;
 
+	UPROPERTY(EditAnywhere, Category = "Dialogue")
+	TSubclassOf<class UUserWidget> _dialogueWidgetClass;
+
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
@@ -35,5 +37,5 @@ public:
 	UFUNCTION()
 	virtual void SetState();
 
-	virtual void UseInteraction() override;
+	void UseInteraction();
 };

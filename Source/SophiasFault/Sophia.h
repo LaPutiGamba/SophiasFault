@@ -97,25 +97,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* _inspectAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* _clickInteractiveAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* _getUpAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* _clickRotationAction;
 	/* ------------------------- */
-
-
-	/* ----- Flashlight and it's reload system ----- */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* _flashlightAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* _rechargeFlashlightAction;
-	/* --------------------------------------------- */
 
 
 	/* ----- Inventory ----- */
@@ -161,18 +143,10 @@ protected:
 
 
 	/* ----- Items ----- */
-	AActor* _currentChangeCameraItem;
-
 	class USceneComponent* _holdingComponent;
 	class USceneComponent* _attachComponent;
 
 	bool _bCanMove;
-	bool _bInspectingPressed;
-
-	float _pitchMax;
-	float _pitchMin;
-
-	FRotator _lastRotation;
 	/* ----------------- */
 
 /************* FUNCTIONS *************/
@@ -200,6 +174,8 @@ public:
 
 	class USceneComponent* GetHoldingComponent() { return _holdingComponent; }
 
+	void ToggleMovement(bool& bInspecting);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -212,19 +188,8 @@ protected:
 
 	void Inventory(const FInputActionValue& value);
 
-	// EARTH PUZZLE
-	void ClickInteractive(const FInputActionValue& value);
-
-	void EarthRotation(const FInputActionValue& value);
-
 	// ITEMS
 	void OnAction(const FInputActionValue& value);
 
 	void DropItem(const FInputActionValue& value);
-
-	void OnInspect(const FInputActionValue& value);
-
-	void BlendBackWithCamera(const FInputActionValue& value);
-
-	void ToggleMovement();
 };

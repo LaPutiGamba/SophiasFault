@@ -11,7 +11,6 @@
 #include "../Core/GMS_MyGameStateBase.h"
 #include "../Sophia.h"
 #include "../Macros.h"
-#include "DrawDebugHelpers.h"
 
 UInventoryComponent::UInventoryComponent()
 {
@@ -22,6 +21,7 @@ UInventoryComponent::UInventoryComponent()
 
     _bHoldingItem = false;
     _bInspecting = false;
+    _bInspectingPressed = false;
 
 	_currentItemSlotIndex = 0;
 	_currentItemInSight = nullptr;
@@ -40,25 +40,30 @@ void UInventoryComponent::BeginPlay()
         _items.Add(nullptr);
     }
 
-    _cameraComponent = Cast<ASophia>(GetWorld()->GetFirstPlayerController()->GetPawn())->GetCameraComponent();
-    _holdingComponent = Cast<ASophia>(GetWorld()->GetFirstPlayerController()->GetPawn())->GetHoldingComponent();
+    _playerController = GetWorld()->GetFirstPlayerController();
+    _cameraComponent = Cast<ASophia>(_playerController->GetPawn())->GetCameraComponent();
+    _holdingComponent = Cast<ASophia>(_playerController->GetPawn())->GetHoldingComponent();
+
+    if (_playerController->PlayerCameraManager)
+        _pitchMax = _playerController->PlayerCameraManager->ViewPitchMax;
+    if (_playerController->PlayerCameraManager)
+        _pitchMin = _playerController->PlayerCameraManager->ViewPitchMin;
 }
 
 void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickType, FActorComponentTickFunction* thisTickFunction)
 {
     Super::TickComponent(deltaTime, tickType, thisTickFunction);
 
-    // ITEMS (PHYSICS AND STATICS)
+    // ITEMS 
     // Calculations to know the distance and in what point the player has to look to detect an Item.
     if (_cameraComponent != nullptr)
         _start = _cameraComponent->GetComponentLocation();
     if (_cameraComponent != nullptr)
         _forwardVector = _cameraComponent->GetForwardVector();
-    _end = ((_forwardVector * 135.f) + _start);
+    _end = ((_forwardVector * 200.f) + _start);
 
     // CHECK FOR ITEMS
     if (!_bHoldingItem) {
-        DrawDebugLine(GetWorld(), _start, _end, FColor::Green, false, 1, 0, 1);
         if (GetWorld()->LineTraceSingleByChannel(_hit, _start, _end, ECC_Visibility, FComponentQueryParams::DefaultQueryParam, FCollisionResponseParams::DefaultResponseParam)) {
             // If the player has in sight the Flashlight saves a pointer to that Actor.
             if (_hit.GetActor()->IsA<AFlashlight>()) {
@@ -118,13 +123,11 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
     // NO SWITCHEABLE ITEMS
     if (_currentHandItem != nullptr) {
         if (_currentHandItem->_bNoSwitchableItem) {
-            if (Cast<AStair>(_currentHandItem)) {
-                AStair* stair = Cast<AStair>(_currentHandItem);
-
+            if (AStair* stair = Cast<AStair>(_currentHandItem)) {
                 if (stair->_triggered)
-                    stair->_finalPoistion->SetActorHiddenInGame(false);
+                    stair->_finalPosition->SetActorHiddenInGame(false);
                 else
-                    stair->_finalPoistion->SetActorHiddenInGame(true);
+                    stair->_finalPosition->SetActorHiddenInGame(true);
             }
         }
     }
@@ -132,8 +135,6 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
 
 bool UInventoryComponent::AddItem(AItem* item)
 {
-	//if (_items.Num() > _capacity || !item) return false;
-
 	for (int i = 0; i < _capacity; i++) {
 		if (_items[i] == nullptr) {
 			_items[i] = item;
@@ -209,5 +210,32 @@ void UInventoryComponent::ChangeCurrentHandItem(const FInputActionValue& value, 
     } else {
         _currentHandItem = nullptr;
         _bHoldingItem = false;
+    }
+}
+
+void UInventoryComponent::InspectItem(const FInputActionValue&)
+{
+    _bInspectingPressed = !_bInspectingPressed;
+
+    if (_currentHandItem) {
+        if (_currentHandItem->_bNoSwitchableItem) return;
+
+        if (_bInspectingPressed) {
+            if (_bHoldingItem) {
+                _lastRotation = _playerController->GetPawn()->GetControlRotation();
+                Cast<ASophia>(_playerController->GetPawn())->ToggleMovement(_bInspecting);
+            } else {
+                _bInspecting = true;
+            }
+        } else {
+            if (_bInspecting && _bHoldingItem) {
+                _playerController->SetControlRotation(_lastRotation);
+                _playerController->PlayerCameraManager->ViewPitchMax = _pitchMax;
+                _playerController->PlayerCameraManager->ViewPitchMin = _pitchMin;
+                Cast<ASophia>(_playerController->GetPawn())->ToggleMovement(_bInspecting);
+            } else {
+                _bInspecting = false;
+            }
+        }
     }
 }

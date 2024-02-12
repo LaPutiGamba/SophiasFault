@@ -4,6 +4,7 @@
 #include "../Inventory/Item.h"
 #include "../Inventory/Items/EarthContinent.h"
 #include "../Inventory/Items/MirrorLight.h"
+#include "../Cameras/PianoCamera.h"
 
 AGMS_MyGameStateBase::AGMS_MyGameStateBase()
 {
@@ -11,15 +12,18 @@ AGMS_MyGameStateBase::AGMS_MyGameStateBase()
 	_bPianoPuzzleSolved = false;
 	_onBlendTime = 0.f;
 		
-	const uint8 PianoResult[] = { 1, 3, 3, 5, 8, 10, 13, 11, 9, 5, 1 };
+	const uint8 PianoResult[] = { 1, 3, 3, 5, 8, 10, 13, 11, 9, 5, 1, 13 };
 	_pianoKeysResult.Append(PianoResult, UE_ARRAY_COUNT(PianoResult));
+
+	const uint8 MirrorLightResult[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+	_positionedMirrorLights.Append(MirrorLightResult, UE_ARRAY_COUNT(MirrorLightResult));
 }
 
 void AGMS_MyGameStateBase::BeginPlay() 
 {
 	Super::BeginPlay();
 
-	_bOnChase = false;
+	_bOnChase = true;
 }
 
 void AGMS_MyGameStateBase::ActivatePianoSolution()
@@ -27,20 +31,19 @@ void AGMS_MyGameStateBase::ActivatePianoSolution()
 	TArray<AActor*> actorsToFind;
 
 	if (UWorld* world = GetWorld())
-		UGameplayStatics::GetAllActorsOfClass(world, AItem::StaticClass(), actorsToFind);
+		UGameplayStatics::GetAllActorsOfClass(world, APianoCamera::StaticClass(), actorsToFind);
 	
-	AItem* deskDrawerCast = nullptr;
+	APianoCamera* pianoCamera = nullptr;
 
-	for (AActor* deskDrawerActor : actorsToFind) {
-		if (deskDrawerActor->ActorHasTag("PianoKeyDeskDrawer")) 
-			deskDrawerCast = Cast<AItem>(deskDrawerActor);
+	for (AActor* pianoCameraActor : actorsToFind) {
+		if (pianoCameraActor->IsA<APianoCamera>()) {
+			pianoCamera = Cast<APianoCamera>(pianoCameraActor);
+			break;
+		}
 	}
 
-	if (deskDrawerCast != nullptr) {
-		FVector moveDrawerVector = FVector(deskDrawerCast->GetActorLocation());
-		moveDrawerVector.X += 800.f;
-		deskDrawerCast->SetActorRelativeLocation(moveDrawerVector);
-	}
+	if (pianoCamera != nullptr)
+		pianoCamera->ActivatePianoSolution();
 }
 
 void AGMS_MyGameStateBase::ActivateEarthSolution()
@@ -89,43 +92,5 @@ void AGMS_MyGameStateBase::ActivateEarthSolution()
 				continent->Reset();
 			}
 		}
-	}
-}
-
-void AGMS_MyGameStateBase::ActivateMirrorLightSolution()
-{
-	const uint8 mirrorLightResult[] = { 1, 2, 3, 4, 5, 6, 7, 8 };
-
-	bool correct = true;
-
-	for (size_t i = 0; i < _positionedMirrorLights.Num(); i++) {
-		if (_positionedMirrorLights[i] != mirrorLightResult[i]) {
-			correct = false;
-			break;
-		}
-	}
-
-	printBool(correct);
-
-	if (correct) {
-		TArray<AActor*> actorsToFind;
-
-		if (UWorld* world = GetWorld())
-			UGameplayStatics::GetAllActorsOfClass(world, AItem::StaticClass(), actorsToFind);
-
-		AItem* deskDrawerCast = nullptr;
-
-		for (AActor* deskDrawerActor : actorsToFind) {
-			if (deskDrawerActor->ActorHasTag("MirrorLightDeskDrawer"))
-				deskDrawerCast = Cast<AItem>(deskDrawerActor);
-		}
-
-		if (deskDrawerCast != nullptr) {
-			FVector moveDrawerVector = FVector(deskDrawerCast->GetActorLocation());
-			moveDrawerVector.X += 800.f;
-			deskDrawerCast->SetActorRelativeLocation(moveDrawerVector);
-		}
-	} else {
-		_positionedMirrorLights.Reset();
 	}
 }

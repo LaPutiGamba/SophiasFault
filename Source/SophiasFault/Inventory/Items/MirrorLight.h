@@ -4,7 +4,6 @@
 #include "../Item.h"
 #include "../../Interfaces/OnActionInterface.h"
 #include "../../Interfaces/PickUpInterface.h"
-#include "Components/TimelineComponent.h"
 #include "MirrorLight.generated.h"
 
 /**
@@ -27,16 +26,14 @@ public:
 
 	virtual void Tick(float deltaTime) override;
 
-	// TIMELINE
-	class UTimelineComponent* _timelineComponent;
+	virtual void PickUpItem(class AItem* item) override;
 
-	UPROPERTY(EditAnywhere, Category = "Timeline")
+	// TIMELINE
 	class UCurveVector* _curveVector;
 
 	float _timelineValue;
 	FVector _curveVectorValue;
 
-	FOnTimelineEvent _timelineFinishedCallback;
 	FOnTimelineVector _timelineCallback;
 
 	FVector _lightFinishPosition;
