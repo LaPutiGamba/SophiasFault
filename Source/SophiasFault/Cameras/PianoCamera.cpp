@@ -1,9 +1,8 @@
 #include "PianoCamera.h"
-#include "../Inventory/Items/PianoKey.h"
-#include "../Inventory/Items/DoorKey.h"
+#include "../Inventory/Items/Piano/PianoKey.h"
+#include "../Inventory/Items/Door/DoorKey.h"
 #include "Components/AudioComponent.h" 
 #include "Kismet/GameplayStatics.h"
-#include "Sound/SoundCue.h" 
 #include "../Sophia.h"
 #include "../Macros.h"
 
@@ -15,21 +14,19 @@ APianoCamera::APianoCamera()
 
 void APianoCamera::UseInteraction()
 {
-	if (_myGameState->_onBlendTime <= 0.0f) {
+	if (_myGameState->_onBlendTime <= 0.001f) {
+		ACameraBlend::UseInteraction();
+
 		_playerController->SetViewTargetWithBlend(this, 0.75f);
 		_myGameState->_onBlendTime = 0.75f;
 		_playerController->bShowMouseCursor = true;
 		_playerController->bEnableClickEvents = true;
 		_playerController->bEnableMouseOverEvents = true;
 
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(_playerController->GetLocalPlayer())) {
-			Subsystem->RemoveMappingContext(_mainMappingContext);
-			Subsystem->AddMappingContext(_puzzleMappingContext, 0);
-		}
-
 		if (_enhancedInputComponent) {
 			_getUpHandle = &_enhancedInputComponent->BindAction(_getUpAction, ETriggerEvent::Triggered, this, &APianoCamera::BlendBack);
 			_clickInteractiveHandle = &_enhancedInputComponent->BindAction(_clickInteractiveAction, ETriggerEvent::Triggered, this, &APianoCamera::ClickInteractive);
+			_blendCameraHandle = &_enhancedInputComponent->BindAction(_blendCameraAction, ETriggerEvent::Triggered, this, &APianoCamera::LookPianoSheet);
 		}
 	}
 }
@@ -39,8 +36,8 @@ void APianoCamera::BlendBack()
 	ACameraBlend::BlendBack();
 
 	if (_enhancedInputComponent) {
-		_enhancedInputComponent->RemoveBinding(*_getUpHandle);
 		_enhancedInputComponent->RemoveBinding(*_clickInteractiveHandle);
+		_enhancedInputComponent->RemoveBinding(*_blendCameraHandle);
 	}
 
 	Cast<ASophia>(GetWorld()->GetFirstPlayerController()->GetPawn())->GetInventory()->_currentChangeCameraItem = nullptr;
@@ -63,17 +60,43 @@ void APianoCamera::ClickInteractive(const FInputActionValue& value)
 	}
 }
 
+void APianoCamera::LookPianoSheet(const FInputActionValue& value)
+{
+	bool bIsPianoSheet = value.Get<bool>();
+
+	FTimerHandle blendCameraHandle;
+	if (bIsPianoSheet) {
+		printFloat(_myGameState->_onBlendTime);
+		GetWorld()->GetTimerManager().SetTimer(blendCameraHandle, [this]() {
+			_playerController->SetViewTargetWithBlend(_sheetCamera, 0.5f);
+			_myGameState->_onBlendTime = 0.5f;
+			_playerController->bShowMouseCursor = false;
+			_playerController->bEnableClickEvents = false;
+			_playerController->bEnableMouseOverEvents = false;
+		}, _myGameState->_onBlendTime, false);
+	} else {
+		printFloat(_myGameState->_onBlendTime);
+		GetWorld()->GetTimerManager().SetTimer(blendCameraHandle, [this]() {
+			_playerController->SetViewTargetWithBlend(this, 0.5f);
+			_myGameState->_onBlendTime = 0.5f;
+			_playerController->bShowMouseCursor = true;
+			_playerController->bEnableClickEvents = true;
+			_playerController->bEnableMouseOverEvents = true;
+		}, _myGameState->_onBlendTime, false);
+	}
+}
+
 void APianoCamera::ActivatePianoSolution()
 {
 	if (_pianoHollowKey != nullptr && _doorKey != nullptr) {
 		_pianoHollowKey->_curveFloat = _curveFloatFinal;
 		_pianoHollowKey->_timelineComponent->AddInterpFloat(_pianoHollowKey->_curveFloat, _pianoHollowKey->_timelineCallback);
-		_pianoHollowKey->_soundCue = _soundCueFinal;
-		if (_pianoHollowKey->_soundCue->IsValidLowLevelFast())
-			_pianoHollowKey->_soundComponent->SetSound(_pianoHollowKey->_soundCue);
-
 		_pianoHollowKey->_timelineComponent->PlayFromStart();
-		_pianoHollowKey->_soundComponent->Play();
+
+		if (_pianoHollowKey->_soundComponent != nullptr) {
+			_pianoHollowKey->_soundComponent->SetIntParameter("Piano Note", 13);
+			_pianoHollowKey->_soundComponent->Play();
+		}
 
 		FTimerHandle doorTimerHandle;
 		GetWorld()->GetTimerManager().SetTimer(doorTimerHandle, [this]() {

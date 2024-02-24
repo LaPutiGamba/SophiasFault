@@ -75,7 +75,7 @@ void AFloatAnimatedItem::ControlFloatAnimation(float value)
 			break;
 		}
 
-		SetActorLocation(newLocation);
+		SetActorRelativeLocation(newLocation);
 	} else {
 		FRotator newRotation = GetActorRotation();
 
@@ -91,7 +91,7 @@ void AFloatAnimatedItem::ControlFloatAnimation(float value)
 			break;
 		}
 
-		SetActorRotation(newRotation);
+		SetActorRelativeRotation(newRotation);
 	}
 }
 

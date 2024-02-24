@@ -24,9 +24,9 @@ void IPickUpInterface::DropItem(AItem* item, UCameraComponent* cameraComponent)
 	item->_meshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 	item->_meshComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-	FVector _forwardVector = cameraComponent->GetForwardVector();
+	FVector forwardVector = cameraComponent->GetForwardVector();
 
-	item->_meshComponent->AddForce(_forwardVector * 40000 * item->_meshComponent->GetMass());
+	item->_meshComponent->AddForce(forwardVector * 40000 * item->_meshComponent->GetMass());
 
 	item->_owningInventory->RemoveItem(item);
 }

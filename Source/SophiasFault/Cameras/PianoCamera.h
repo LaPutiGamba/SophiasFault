@@ -22,20 +22,24 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Final Animation")
 	class UCurveFloat* _curveFloatFinal;
 
-	UPROPERTY(EditAnywhere, Category = "Final Animation")
-	class USoundCue* _soundCueFinal;
+	UPROPERTY(EditAnywhere, Category = "Cameras") 
+	class ACameraActor* _sheetCamera;
 
-	FInputBindingHandle* _getUpHandle;
 	FInputBindingHandle* _clickInteractiveHandle;
+	FInputBindingHandle* _blendCameraHandle;
 
 	UPROPERTY(EditAnywhere, Category = "Mapping Context")
 	class UInputAction* _clickInteractiveAction;
+	UPROPERTY(EditAnywhere, Category = "Mapping Context")
+	class UInputAction* _blendCameraAction;
 
 	virtual void UseInteraction() override;
 
 	virtual void BlendBack() override;
 
 	void ClickInteractive(const FInputActionValue& value);
+
+	void LookPianoSheet(const FInputActionValue& value);
 
 	void ActivatePianoSolution();
 };

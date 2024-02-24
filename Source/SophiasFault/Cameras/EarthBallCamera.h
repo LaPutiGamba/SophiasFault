@@ -12,7 +12,6 @@ class SOPHIASFAULT_API AEarthBallCamera : public ACameraBlend
 public:
 	AEarthBallCamera();
 
-	FInputBindingHandle* _getUpHandle;
 	FInputBindingHandle* _clickInteractiveHandle;
 	FInputBindingHandle* _clickRotationHandle;
 

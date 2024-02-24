@@ -26,6 +26,7 @@ public:
 	virtual void BeginPlay() override;
 	
 	float _onBlendTime;
+	bool _bStairPositioned;
 
 	// AI functions
 	void SetOnChase(bool value) { _bOnChase = value; }

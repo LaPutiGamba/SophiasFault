@@ -1,13 +1,13 @@
 ﻿#include "InventoryComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraComponent.h"
-#include "Items/MirrorLight.h"
+#include "Items/Mirror Light/MirrorLight.h"
 #include "Items/Stair.h"
 #include "Items/Flashlight.h"
-#include "Items/ActorBlendCamera.h"
 #include "../Interfaces/InteractiveInterface.h"
 #include "../Interfaces/PickUpInterface.h"
 #include "../Interfaces/OnActionInterface.h"
+#include "../Interfaces/ActorBlendInterface.h"
 #include "../Core/GMS_MyGameStateBase.h"
 #include "../Sophia.h"
 #include "../Macros.h"
@@ -66,20 +66,24 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
     if (!_bHoldingItem) {
         if (GetWorld()->LineTraceSingleByChannel(_hit, _start, _end, ECC_Visibility, FComponentQueryParams::DefaultQueryParam, FCollisionResponseParams::DefaultResponseParam)) {
             // If the player has in sight the Flashlight saves a pointer to that Actor.
-            if (_hit.GetActor()->IsA<AFlashlight>()) {
+            if (Cast<AFlashlight>(_hit.GetActor())) {
                 _flashlightItem = Cast<AFlashlight>(_hit.GetActor());
                 return;
             }
 
-            // If the player has in sight the Piano Seat or the Earth Ball, the _currentChangeCameraItem will save a pointer to that Actor.
-            if (_hit.GetActor()->IsA<AActorBlendCamera>()) {
-                _currentChangeCameraItem = Cast<AActorBlendCamera>(_hit.GetActor());
-                return;
+            // If the player has in sight a Current Change Camera Item saves a pointer to that Actor.
+            if (AActor* actorBlendCamera = Cast<AActor>(_hit.GetActor())) {
+                if (actorBlendCamera->GetClass()->ImplementsInterface(UActorBlendInterface::StaticClass())) {
+                    _currentChangeCameraItem = actorBlendCamera;
+                    return;
+                }
             }
 
             // If the player has in sight an Item saves a pointer to that Actor.
-            if (_hit.GetActor())
+            if (_hit.GetActor()) {
                 _currentItemInSight = Cast<AItem>(_hit.GetActor());
+                return;
+            }
         } else {
             // If the player doesn't has in sight any item, all the items are null.
             _flashlightItem = nullptr;
@@ -116,7 +120,7 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
             if (_currentHandItem != nullptr)
                 _currentHandItem->SetActorRotation(_holdingComponent->GetRelativeRotation());
 
-            _holdingComponent->SetRelativeLocation(FVector(50.f, -10.f, 20.f));
+            _holdingComponent->SetRelativeLocation(FVector(50.f, 14.f, -12.f));
         }
     }
 

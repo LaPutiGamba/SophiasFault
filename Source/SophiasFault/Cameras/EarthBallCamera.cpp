@@ -1,8 +1,8 @@
 #include "EarthBallCamera.h"
 #include "../Sophia.h"
 #include "../Inventory/InventoryComponent.h"
-#include "../Inventory/Items/EarthContinent.h"
-#include "../Inventory/Items/ActorBlendCamera.h"
+#include "../Inventory/Items/Earth/EarthContinent.h"
+#include "../Interfaces/ActorBlendInterface.h"
 #include "../Interfaces/InteractiveInterface.h"
 #include "EnhancedInputComponent.h"
 #include "../Macros.h"
@@ -16,7 +16,9 @@ AEarthBallCamera::AEarthBallCamera()
 
 void AEarthBallCamera::UseInteraction()
 {
-	if (_myGameState->_onBlendTime <= 0.0f) {
+	if (_myGameState->_onBlendTime <= 0.001f) {
+		ACameraBlend::UseInteraction();
+
 		// Calculate the location and direction of the camera to center the sphere.
 		FVector playerViewDirection = _playerController->GetControlRotation().Vector();
 		float distanceBehindSphere = 220.0f;
@@ -33,8 +35,6 @@ void AEarthBallCamera::UseInteraction()
 		_playerController->bEnableClickEvents = true;
 		_playerController->bEnableMouseOverEvents = true;
 
-		ACameraBlend::UseInteraction();
-
 		if (_enhancedInputComponent) {
 			_getUpHandle = &_enhancedInputComponent->BindAction(_getUpAction, ETriggerEvent::Triggered, this, &AEarthBallCamera::BlendBack);
 			_clickInteractiveHandle = &_enhancedInputComponent->BindAction(_clickInteractiveAction, ETriggerEvent::Triggered, this, &AEarthBallCamera::ClickInteractive);
@@ -48,7 +48,6 @@ void AEarthBallCamera::BlendBack()
 	ACameraBlend::BlendBack();
 
 	if (_enhancedInputComponent) {
-		_enhancedInputComponent->RemoveBinding(*_getUpHandle);
 		_enhancedInputComponent->RemoveBinding(*_clickInteractiveHandle);
 		_enhancedInputComponent->RemoveBinding(*_clickRotationHandle);
 	}

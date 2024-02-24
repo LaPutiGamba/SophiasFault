@@ -42,7 +42,7 @@ public:
 
 	class AItem* _currentHandItem;
 	class AItem* _currentItemInSight;
-	class AActorBlendCamera* _currentChangeCameraItem;
+	class AActor* _currentChangeCameraItem;
 	class AFlashlight* _flashlightItem;
 
 	bool _bHoldingItem;

@@ -27,6 +27,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Mapping Context")
 	class UInputAction* _getUpAction;
 
+	FInputBindingHandle* _getUpHandle;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mapping Context")
 	class UInputMappingContext* _mainMappingContext;
 

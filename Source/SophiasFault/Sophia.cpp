@@ -7,13 +7,13 @@
 #include "Inventory/InventoryWidget.h"
 #include "Inventory/Items/Flashlight.h"
 #include "Inventory/Items/Stair.h"
-#include "Inventory/Items/MirrorLight.h"
-#include "Inventory/Items/PianoKey.h"
-#include "Inventory/Items/ActorBlendCamera.h"
+#include "Inventory/Items/Mirror Light/MirrorLight.h"
+#include "Inventory/Items/Piano/PianoKey.h"
 #include "Interfaces/InteractiveInterface.h"
 #include "Interfaces/PickUpInterface.h"
 #include "Interfaces/OnActionInterface.h"
 #include "Interfaces/CameraBlendInterface.h"
+#include "Interfaces/ActorBlendInterface.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Blueprint/UserWidget.h"
@@ -64,13 +64,9 @@ ASophia::ASophia()
 	_staminaStatus = ST_IDLE;
 
 	// Init of ITEMS variables
-	_attachComponent = CreateDefaultSubobject<USceneComponent>(TEXT("AttachComponent"));
-	_attachComponent->SetupAttachment(RootComponent);
-	_attachComponent->SetRelativeLocation(FVector(0.2f, 48.4f, -10.6f));
-
 	_holdingComponent = CreateDefaultSubobject<USceneComponent>(TEXT("HoldingComponent"));
-	_holdingComponent->SetRelativeLocation(FVector(50.0f, 0.0f, 0.0f));
-	_holdingComponent->SetupAttachment(_attachComponent);
+	_holdingComponent->SetRelativeLocation(FVector(50.f, 14.f, -12.f));
+	_holdingComponent->SetupAttachment(_cameraComponent);
 
 	_bCanMove = true;
 }
@@ -193,8 +189,10 @@ void ASophia::Tick(float deltaTime)
 	}
 
 	// Blend time of the camera (ASohpia::BlendWithCamera)
-	if (_myGameState->_onBlendTime > 0.0f)
+	if (_myGameState->_onBlendTime > 0.001f)
 		_myGameState->_onBlendTime -= deltaTime;
+	if (_myGameState->_onBlendTime < 0.001f)
+		_myGameState->_onBlendTime = 0.001f;
 }
 
 void ASophia::SetupPlayerInputComponent(UInputComponent *playerInputComponent)
@@ -305,7 +303,9 @@ void ASophia::OnAction(const FInputActionValue &value)
 			flashlightItem->PickUpItem(_inventory->_flashlightItem);
 		}
 	} else if (_inventory->_currentChangeCameraItem) {
-		if (AActorBlendCamera* changeCameraItem = Cast<AActorBlendCamera>(_inventory->_currentChangeCameraItem)) {
+		if (_inventory->_currentChangeCameraItem->GetClass()->ImplementsInterface(UActorBlendInterface::StaticClass())) {
+			IActorBlendInterface* changeCameraItem = Cast<IActorBlendInterface>(_inventory->_currentChangeCameraItem);
+
 			if (changeCameraItem->_cameraActorBlend) {
 				if (IInteractiveInterface* cameraItem = Cast<IInteractiveInterface>(changeCameraItem)) {
 					cameraItem->UseInteraction();

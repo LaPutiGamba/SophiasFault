@@ -1,6 +1,7 @@
 #include "Flashlight.h"
 #include "Components/SpotLightComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "../../Core/GMS_MyGameStateBase.h"
 #include "../../Macros.h"
 
 AFlashlight::AFlashlight()
@@ -86,17 +87,19 @@ void AFlashlight::RechargeFlashlight(const FInputActionValue& value)
 
 void AFlashlight::PickUpItem(AItem* item)
 {
-	IPickUpInterface::PickUpItem(item);
+	if (_myGameState->_bStairPositioned) {
+		IPickUpInterface::PickUpItem(this);
 
-	if (UEnhancedInputComponent* enhancedInputComponent = CastChecked<UEnhancedInputComponent>(_playerController->InputComponent)) {
-		_flashlightBindingHandle = &enhancedInputComponent->BindAction(_flashlightAction, ETriggerEvent::Triggered, this, &AFlashlight::UseFlashlight);
-		_rechargeFlashlightBindingHandle = &enhancedInputComponent->BindAction(_rechargeFlashlightAction, ETriggerEvent::Triggered, this, &AFlashlight::RechargeFlashlight);
+		if (UEnhancedInputComponent* enhancedInputComponent = CastChecked<UEnhancedInputComponent>(_playerController->InputComponent)) {
+			_flashlightBindingHandle = &enhancedInputComponent->BindAction(_flashlightAction, ETriggerEvent::Triggered, this, &AFlashlight::UseFlashlight);
+			_rechargeFlashlightBindingHandle = &enhancedInputComponent->BindAction(_rechargeFlashlightAction, ETriggerEvent::Triggered, this, &AFlashlight::RechargeFlashlight);
+		}
 	}
 }
 
 void AFlashlight::DropItem(AItem* item, UCameraComponent* cameraComponent)
 {
-	IPickUpInterface::DropItem(item, cameraComponent);
+	IPickUpInterface::DropItem(this, cameraComponent);
 
 	if (UEnhancedInputComponent* enhancedInputComponent = CastChecked<UEnhancedInputComponent>(_playerController->InputComponent)) {
 		enhancedInputComponent->RemoveBinding(*_flashlightBindingHandle);

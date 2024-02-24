@@ -2,17 +2,19 @@
 #include "../Macros.h"
 #include "Kismet/GameplayStatics.h"
 #include "../Inventory/Item.h"
-#include "../Inventory/Items/EarthContinent.h"
-#include "../Inventory/Items/MirrorLight.h"
+#include "../Inventory/Items/Earth/EarthContinent.h"
+#include "../Inventory/Items/Mirror Light/MirrorSolution.h"
 #include "../Cameras/PianoCamera.h"
 
 AGMS_MyGameStateBase::AGMS_MyGameStateBase()
 {
 	_bOnChase = false;
 	_bPianoPuzzleSolved = false;
+	_bStairPositioned = false;
 	_onBlendTime = 0.f;
 		
-	const uint8 PianoResult[] = { 1, 3, 3, 5, 8, 10, 13, 11, 9, 5, 1, 13 };
+	//const uint8 PianoResult[] = { 1, 3, 3, 5, 8, 10, 13, 11, 9, 5, 1, 13 };
+	const uint8 PianoResult[] = { 4, 1, 4, 1, 4, 6, 8, 8, 6, 8, 9, 8, 6, 4, 6, 4 };
 	_pianoKeysResult.Append(PianoResult, UE_ARRAY_COUNT(PianoResult));
 
 	const uint8 MirrorLightResult[] = { 0, 0, 0, 0, 0, 0, 0, 0 };

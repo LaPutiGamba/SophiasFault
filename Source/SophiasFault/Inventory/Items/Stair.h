@@ -4,13 +4,14 @@
 #include "../Item.h"
 #include "../../Interfaces/OnActionInterface.h"
 #include "../../Interfaces/PickUpInterface.h"
+#include "../../Interfaces/TriggerInterface.h"
 #include "Stair.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class SOPHIASFAULT_API AStair : public AItem, public IOnActionInterface, public IPickUpInterface
+class SOPHIASFAULT_API AStair : public AItem, public IOnActionInterface, public IPickUpInterface, public ITriggerInterface
 {
 	GENERATED_BODY()
 	
@@ -19,8 +20,7 @@ public:
 
 	virtual void BeginPlay() override;
 
-	UPROPERTY(EditAnywhere)
-	class ATriggerBox* _triggerBox;
+	bool _triggered;
 
 	UPROPERTY(EditAnywhere)
 	class AActor* _finalPosition;
@@ -28,7 +28,8 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UMaterialInterface* _defaultMaterial;
 
-	bool _triggered;
-
 	virtual void OnAction() override;
+
+	virtual void OnTriggerStart() override;
+	virtual void OnTriggerEnd() override;
 };

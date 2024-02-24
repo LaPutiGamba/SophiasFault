@@ -2,8 +2,8 @@
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
-#include "../Sophia.h"
 #include "../Core/GMS_MyGameStateBase.h"
+#include "../Sophia.h"
 #include "../Macros.h"
 
 AItem::AItem()
@@ -17,8 +17,12 @@ AItem::AItem()
 
 	_name = "Item";
 
-	_soundCue = nullptr;
-	_soundComponent = nullptr;
+	_soundComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("Sound Component"));
+	_soundComponent->bAutoActivate = false;
+	_soundComponent->SetupAttachment(RootComponent);
+	_soundComponent->SetRelativeLocation(FVector(0.f, 0.0f, 0.0f));
+
+	_metaSound = nullptr;
 	_owningInventory = nullptr;
 	_myCharacter = nullptr;
 	_playerCamera = nullptr;
@@ -39,6 +43,9 @@ void AItem::BeginPlay()
 
 	TArray<USceneComponent*> components;
 	_myCharacter->GetComponents(components);
+
+	if (_metaSound != nullptr && _soundComponent != nullptr)
+		_soundComponent->SetSound(_metaSound);
 
 	if (components.Num() > 0) {
 		for (auto& comp : components) {

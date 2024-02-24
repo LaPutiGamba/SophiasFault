@@ -1,5 +1,5 @@
 #include "SecurityCamera.h"
-#include "../Inventory/Items/CameraMonitor.h"
+#include "../Inventory/Items/Security Cameras/CameraMonitor.h"
 
 ASecurityCamera::ASecurityCamera()
 {
@@ -7,14 +7,11 @@ ASecurityCamera::ASecurityCamera()
 
 void ASecurityCamera::UseInteraction()
 {
-	if (_myGameState->_onBlendTime <= 0.0f) {
+	if (_myGameState->_onBlendTime <= 0.001f) {
+		ACameraBlend::UseInteraction();
+		
 		_playerController->SetViewTargetWithBlend(this, 0.75f);
 		_myGameState->_onBlendTime = 0.75f;
-
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(_playerController->GetLocalPlayer())) {
-			Subsystem->RemoveMappingContext(_mainMappingContext);
-			Subsystem->AddMappingContext(_puzzleMappingContext, 0);
-		}
 
 		if (_enhancedInputComponent) {
 			_getUpHandle = &_enhancedInputComponent->BindAction(_getUpAction, ETriggerEvent::Triggered, this, &ASecurityCamera::BlendBack);
@@ -27,8 +24,6 @@ void ASecurityCamera::BlendBack()
 {
 	ACameraBlend::BlendBack();
 
-	if (_enhancedInputComponent) {
-		_enhancedInputComponent->RemoveBinding(*_getUpHandle);
+	if (_enhancedInputComponent)
 		_enhancedInputComponent->RemoveBinding(*_clickInteractiveHandle);
-	}
 }

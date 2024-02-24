@@ -21,7 +21,7 @@ public:
 
 	bool _bIsActivated;
 
-	UPROPERTY(EditAnywhere, Category = "Animation");
+	UPROPERTY(EditAnywhere, Category = "Animation")
 	class UCurveFloat* _curveFloat;
 
 	float _timelineValue;
@@ -33,17 +33,17 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Animation");
 	bool _bLocationOrRotation;
 
-	UPROPERTY(EditAnywhere, Category = "Animation", meta = (Units = "Seconds"));
+	UPROPERTY(EditAnywhere, Category = "Animation", meta = (Units = "Seconds"))
 	float _initialTime;
-	UPROPERTY(EditAnywhere, Category = "Animation", meta = (Units = "Seconds"));
+	UPROPERTY(EditAnywhere, Category = "Animation", meta = (Units = "Seconds"))
 	float _finalTime;
 
-	UPROPERTY(EditAnywhere, Category = "Animation");
+	UPROPERTY(EditAnywhere, Category = "Animation")
 	float _initialPosition;
-	UPROPERTY(EditAnywhere, Category = "Animation");
+	UPROPERTY(EditAnywhere, Category = "Animation")
 	float _finalPosition;
 
-	UPROPERTY(EditAnywhere, Category = "Animation");
+	UPROPERTY(EditAnywhere, Category = "Animation")
 	uint8 _XorYorZ;
 
 	UFUNCTION()

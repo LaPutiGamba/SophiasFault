@@ -143,8 +143,8 @@ protected:
 
 
 	/* ----- Items ----- */
+	UPROPERTY(EditAnywhere, Category = "Camera")
 	class USceneComponent* _holdingComponent;
-	class USceneComponent* _attachComponent;
 
 	bool _bCanMove;
 	/* ----------------- */

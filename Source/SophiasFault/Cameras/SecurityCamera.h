@@ -15,7 +15,6 @@ class SOPHIASFAULT_API ASecurityCamera : public ACameraBlend
 public:
 	ASecurityCamera();
 
-	FInputBindingHandle* _getUpHandle;
 	FInputBindingHandle* _clickInteractiveHandle;
 
 	UPROPERTY(EditAnywhere, Category = "Mapping Context")

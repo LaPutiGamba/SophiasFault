@@ -2,14 +2,15 @@
 #include "Components/ShapeComponent.h" 
 #include "../InventoryComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "../../Core/GMS_MyGameStateBase.h"
 #include "../../Sophia.h"
 
 AStair::AStair()
 {
 	_name = "Stair";
-	_triggered = false;
 
 	_bNoSwitchableItem = true;
+	_triggered = false;
 }
 
 void AStair::BeginPlay()
@@ -25,15 +26,26 @@ void AStair::BeginPlay()
 void AStair::OnAction()
 {
 	if (_triggered) {
-		_owningInventory->RemoveItem(_owningInventory->_currentHandItem, false);
-		_owningInventory->_currentHandItem->Destroy();
+		_owningInventory->RemoveItem(this, false);
+		Destroy();
 		_owningInventory->_currentHandItem = nullptr;
-		_owningInventory->_bHoldingItem = !_owningInventory->_bHoldingItem;
 
 		_finalPosition->SetActorHiddenInGame(false);
 		_finalPosition->SetActorEnableCollision(true);
 		UStaticMeshComponent* staticMesh = _finalPosition->GetComponentByClass<UStaticMeshComponent>();
 		staticMesh->SetMaterial(0, _defaultMaterial);
 		_bNoSwitchableItem = false;
+
+		_myGameState->_bStairPositioned = true;
 	}
+}
+
+void AStair::OnTriggerStart()
+{
+	_triggered = true;
+}
+
+void AStair::OnTriggerEnd()
+{
+	_triggered = false;
 }

@@ -2,6 +2,7 @@
 
 #include "GameFramework/Actor.h"
 #include "Components/TimelineComponent.h"
+#include "Components/AudioComponent.h"
 #include "InventoryComponent.h"
 #include "Item.generated.h"
 
@@ -37,9 +38,8 @@ public:
 
 	// AUDIO
 	UPROPERTY(EditAnywhere, Category = "Audio")
-	class USoundCue* _soundCue;
+	class USoundBase* _metaSound;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Audio")
 	class UAudioComponent* _soundComponent;
 
 	// GENERAL VARIABLES
