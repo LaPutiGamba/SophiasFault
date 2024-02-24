@@ -28,6 +28,11 @@ public:
 	float _onBlendTime;
 	bool _bStairPositioned;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UUserWidget* _hudWidget;
+
+	TSubclassOf<class UUserWidget> _hudWidgetClass;
+
 	// AI functions
 	void SetOnChase(bool value) { _bOnChase = value; }
 	bool GetOnChase() { return _bOnChase; }

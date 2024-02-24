@@ -9,6 +9,7 @@
 #include "../Interfaces/OnActionInterface.h"
 #include "../Interfaces/ActorBlendInterface.h"
 #include "../Core/GMS_MyGameStateBase.h"
+#include "Blueprint/UserWidget.h"
 #include "../Sophia.h"
 #include "../Macros.h"
 
@@ -48,6 +49,8 @@ void UInventoryComponent::BeginPlay()
         _pitchMax = _playerController->PlayerCameraManager->ViewPitchMax;
     if (_playerController->PlayerCameraManager)
         _pitchMin = _playerController->PlayerCameraManager->ViewPitchMin;
+
+    _myGameState = GetWorld() != nullptr ? GetWorld()->GetGameState<AGMS_MyGameStateBase>() : nullptr;
 }
 
 void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickType, FActorComponentTickFunction* thisTickFunction)
@@ -68,6 +71,9 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
             // If the player has in sight the Flashlight saves a pointer to that Actor.
             if (Cast<AFlashlight>(_hit.GetActor())) {
                 _flashlightItem = Cast<AFlashlight>(_hit.GetActor());
+
+                if (_myGameState->_hudWidget != nullptr) 
+                    _myGameState->_hudWidget->SetRenderOpacity(1.f);
                 return;
             }
 
@@ -75,20 +81,39 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
             if (AActor* actorBlendCamera = Cast<AActor>(_hit.GetActor())) {
                 if (actorBlendCamera->GetClass()->ImplementsInterface(UActorBlendInterface::StaticClass())) {
                     _currentChangeCameraItem = actorBlendCamera;
+
+                    if (_myGameState->_hudWidget != nullptr)
+                        _myGameState->_hudWidget->SetRenderOpacity(1.f);
                     return;
                 }
             }
 
             // If the player has in sight an Item saves a pointer to that Actor.
-            if (_hit.GetActor()) {
+            if (_hit.GetActor()->GetClass()->ImplementsInterface(UInteractiveInterface::StaticClass()) ||
+                _hit.GetActor()->GetClass()->ImplementsInterface(UPickUpInterface::StaticClass()) ||
+                _hit.GetActor()->GetClass()->ImplementsInterface(UOnActionInterface::StaticClass())) {
                 _currentItemInSight = Cast<AItem>(_hit.GetActor());
+
+                if (_myGameState->_hudWidget != nullptr)
+                    _myGameState->_hudWidget->SetRenderOpacity(1.f);
                 return;
             }
+
+            // If the player doesn't has in sight any item, all the items are null.
+            _flashlightItem = nullptr;
+            _currentChangeCameraItem = nullptr;
+            _currentItemInSight = nullptr;
+
+            if (_myGameState->_hudWidget != nullptr)
+                _myGameState->_hudWidget->SetRenderOpacity(0.25f);
         } else {
             // If the player doesn't has in sight any item, all the items are null.
             _flashlightItem = nullptr;
             _currentChangeCameraItem = nullptr;
             _currentItemInSight = nullptr;
+
+            if (_myGameState->_hudWidget != nullptr)
+				_myGameState->_hudWidget->SetRenderOpacity(0.25f);
         }
     }
 

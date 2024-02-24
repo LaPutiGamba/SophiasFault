@@ -1,4 +1,5 @@
 #include "CameraBlend.h"
+#include "Blueprint/UserWidget.h" 
 #include "../Macros.h"
 #include "../Sophia.h"
 
@@ -26,6 +27,11 @@ void ACameraBlend::UseInteraction()
 		subsystem->RemoveMappingContext(_mainMappingContext);
 		subsystem->AddMappingContext(_puzzleMappingContext, 0);
 	}
+
+	if (_myGameState->_hudWidget != nullptr) {
+		_myGameState->_hudWidget->RemoveFromParent();
+		_myGameState->_hudWidget = nullptr;
+	}
 }
 
 void ACameraBlend::BlendBack()
@@ -44,5 +50,10 @@ void ACameraBlend::BlendBack()
 
 		if (_enhancedInputComponent)
 			_enhancedInputComponent->RemoveBinding(*_getUpHandle);
+
+		if (_myGameState->_hudWidget == nullptr) {
+			_myGameState->_hudWidget = CreateWidget<UUserWidget>(_playerController, _myGameState->_hudWidgetClass);
+			_myGameState->_hudWidget->AddToViewport();
+		}
 	}
 }

@@ -5,6 +5,7 @@
 #include "../Inventory/Items/Earth/EarthContinent.h"
 #include "../Inventory/Items/Mirror Light/MirrorSolution.h"
 #include "../Cameras/PianoCamera.h"
+#include "Blueprint/UserWidget.h"
 
 AGMS_MyGameStateBase::AGMS_MyGameStateBase()
 {
@@ -19,6 +20,14 @@ AGMS_MyGameStateBase::AGMS_MyGameStateBase()
 
 	const uint8 MirrorLightResult[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 	_positionedMirrorLights.Append(MirrorLightResult, UE_ARRAY_COUNT(MirrorLightResult));
+
+	_hudWidget = nullptr;
+
+	ConstructorHelpers::FClassFinder<UUserWidget> hudFinderClass(TEXT("/Game/Items/Widgets/WBP_HUD"));
+	if (hudFinderClass.Succeeded())
+		_hudWidgetClass = hudFinderClass.Class;
+	else
+		_hudWidgetClass = nullptr;
 }
 
 void AGMS_MyGameStateBase::BeginPlay() 
