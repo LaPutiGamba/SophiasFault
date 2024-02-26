@@ -16,7 +16,8 @@ void ACorridorDoor::ControlDoor(float value)
 {
 	_timelineValue = _timelineComponent->GetPlaybackPosition();
 	_curveFloatValue = _bRotateDirection ? _curveFloat->GetFloatValue(_timelineValue) : (- 1.f * _curveFloat->GetFloatValue(_timelineValue));
+	float newRotation = _curveFloatValue - _rotationApplied;
+	_rotationApplied += newRotation;
 
-	FVector newLocation = FVector(_curveFloatValue, 0.f, 0.f);
-	_meshComponent->SetRelativeLocation(newLocation);
+	AddActorLocalOffset(FVector(newRotation, 0.f, 0.f));
 }

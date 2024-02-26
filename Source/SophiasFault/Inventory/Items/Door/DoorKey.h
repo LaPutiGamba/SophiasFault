@@ -22,6 +22,7 @@ public:
 	virtual void Tick(float deltaTime) override;
 
 	FVector _initialLocation;
+	bool _bUsedKey;
 
 	UPROPERTY(EditAnywhere, Category = "Key")
 	uint8 _keyID;

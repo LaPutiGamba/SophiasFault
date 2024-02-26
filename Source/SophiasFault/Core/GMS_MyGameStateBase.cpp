@@ -11,7 +11,7 @@ AGMS_MyGameStateBase::AGMS_MyGameStateBase()
 {
 	_bOnChase = false;
 	_bPianoPuzzleSolved = false;
-	_bStairPositioned = false;
+	_bStairPositioned = true;
 	_onBlendTime = 0.f;
 		
 	//const uint8 PianoResult[] = { 1, 3, 3, 5, 8, 10, 13, 11, 9, 5, 1, 13 };
@@ -34,7 +34,7 @@ void AGMS_MyGameStateBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	_bOnChase = true;
+	_bOnChase = false;
 }
 
 void AGMS_MyGameStateBase::ActivatePianoSolution()

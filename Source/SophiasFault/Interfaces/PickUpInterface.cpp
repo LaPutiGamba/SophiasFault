@@ -5,26 +5,27 @@
 
 void IPickUpInterface::PickUpItem(AItem* item)
 {
-	item->_meshComponent->SetEnableGravity(false);
-	item->_meshComponent->SetSimulatePhysics(false);
-	item->_meshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
 	if (item->_itemComponent) {
-		item->_meshComponent->AttachToComponent(item->_itemComponent, FAttachmentTransformRules::KeepWorldTransform);
-		item->SetActorLocation(item->_itemComponent->GetComponentLocation());
+		item->_itemComponent->SetEnableGravity(false);
+		item->_itemComponent->SetSimulatePhysics(false);
+		item->_itemComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		item->_itemComponent->SetStaticMesh(item->_meshComponent->GetStaticMesh());
 	}
 
 	item->_owningInventory->AddItem(item);
+	item->_meshComponent->SetVisibility(false);
 }
 
-void IPickUpInterface::DropItem(AItem* item, UCameraComponent* cameraComponent)
+void IPickUpInterface::DropItem(AItem* item)
 {
+	item->_meshComponent->SetVisibility(true);
 	item->_meshComponent->SetEnableGravity(true);
 	item->_meshComponent->SetSimulatePhysics(true);
 	item->_meshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 	item->_meshComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-	FVector forwardVector = cameraComponent->GetForwardVector();
+	FVector forwardVector = item->_playerCamera->GetForwardVector();
 
 	item->_meshComponent->AddForce(forwardVector * 40000 * item->_meshComponent->GetMass());
 
@@ -33,6 +34,6 @@ void IPickUpInterface::DropItem(AItem* item, UCameraComponent* cameraComponent)
 
 void IPickUpInterface::RotateItem(AItem* item)
 {
-	item->AddActorWorldRotation(FQuat(_controlRotation));
+	item->_itemComponent->AddWorldRotation(FQuat(_controlRotation));
 	_controlRotation = FRotator::ZeroRotator;
 }

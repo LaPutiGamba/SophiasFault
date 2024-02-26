@@ -17,13 +17,13 @@ public:
 	class APianoKey* _pianoHollowKey;
 
 	UPROPERTY(EditAnywhere, Category = "Final Animation")
-	class ADoorKey* _doorKey;
-
-	UPROPERTY(EditAnywhere, Category = "Final Animation")
 	class UCurveFloat* _curveFloatFinal;
 
+	UPROPERTY(EditAnywhere)
+	AActor* _drawer;
+
 	UPROPERTY(EditAnywhere, Category = "Cameras") 
-	class ACameraActor* _sheetCamera;
+	ACameraActor* _sheetCamera;
 
 	FInputBindingHandle* _clickInteractiveHandle;
 	FInputBindingHandle* _blendCameraHandle;

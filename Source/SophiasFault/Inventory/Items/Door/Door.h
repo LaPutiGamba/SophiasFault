@@ -17,9 +17,6 @@ class SOPHIASFAULT_API ADoor : public AItem, public IInteractiveInterface
 public:
 	ADoor();
 
-	UPROPERTY(EditAnywhere)
-	UStaticMeshComponent* _doorFrameComponent;
-
 	class ASophia* _sophiaCharacter;
 
 	UPROPERTY(EditAnywhere, Category = "Timeline")
@@ -38,6 +35,7 @@ public:
 
 	float _timelineValue;
 	float _curveFloatValue;
+	float _rotationApplied;
 
 	UPROPERTY(EditAnywhere, Category = "Door")
 	uint8 _keyID;

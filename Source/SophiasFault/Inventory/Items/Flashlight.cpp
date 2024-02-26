@@ -90,19 +90,13 @@ void AFlashlight::PickUpItem(AItem* item)
 	if (_myGameState->_bStairPositioned) {
 		IPickUpInterface::PickUpItem(this);
 
-		if (UEnhancedInputComponent* enhancedInputComponent = CastChecked<UEnhancedInputComponent>(_playerController->InputComponent)) {
+		if (UEnhancedInputComponent* enhancedInputComponent = Cast<UEnhancedInputComponent>(_playerController->InputComponent)) {
 			_flashlightBindingHandle = &enhancedInputComponent->BindAction(_flashlightAction, ETriggerEvent::Triggered, this, &AFlashlight::UseFlashlight);
 			_rechargeFlashlightBindingHandle = &enhancedInputComponent->BindAction(_rechargeFlashlightAction, ETriggerEvent::Triggered, this, &AFlashlight::RechargeFlashlight);
 		}
 	}
 }
 
-void AFlashlight::DropItem(AItem* item, UCameraComponent* cameraComponent)
+void AFlashlight::DropItem(AItem* item)
 {
-	IPickUpInterface::DropItem(this, cameraComponent);
-
-	if (UEnhancedInputComponent* enhancedInputComponent = CastChecked<UEnhancedInputComponent>(_playerController->InputComponent)) {
-		enhancedInputComponent->RemoveBinding(*_flashlightBindingHandle);
-		enhancedInputComponent->RemoveBinding(*_rechargeFlashlightBindingHandle);
-	}
 }

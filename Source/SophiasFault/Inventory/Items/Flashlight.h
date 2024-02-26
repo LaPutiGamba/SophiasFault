@@ -52,5 +52,5 @@ public:
 	void RechargeFlashlight(const FInputActionValue& value);
 
 	virtual void PickUpItem(class AItem* item) override;
-	virtual void DropItem(class AItem* item, class UCameraComponent* cameraComponent) override;
+	virtual void DropItem(class AItem* item) override;
 };

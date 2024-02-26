@@ -26,14 +26,12 @@ void AStair::BeginPlay()
 void AStair::OnAction()
 {
 	if (_triggered) {
-		_owningInventory->RemoveItem(this, false);
+		_owningInventory->RemoveItem(this);
 		Destroy();
 		_owningInventory->_currentHandItem = nullptr;
 
 		_finalPosition->SetActorHiddenInGame(false);
 		_finalPosition->SetActorEnableCollision(true);
-		UStaticMeshComponent* staticMesh = _finalPosition->GetComponentByClass<UStaticMeshComponent>();
-		staticMesh->SetMaterial(0, _defaultMaterial);
 		_bNoSwitchableItem = false;
 
 		_myGameState->_bStairPositioned = true;

@@ -22,12 +22,6 @@ protected:
 	/* ----- Mapping Contexts ----- */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputMappingContext* _mainMappingContext;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputMappingContext* _pianoMappingContext;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputMappingContext* _earthMappingContext;
 	/* ---------------------------- */
 
 
@@ -51,12 +45,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement/View variables", meta = (ClampMin = "0.01", ClampMax = "1"))
 	float _cameraVelocity;
-
-	UPROPERTY(EditAnywhere, Category = "Camera")
-	class AActor* _pianoCameraActor;
-
-	UPROPERTY(EditAnywhere, Category = "Camera")
-	class AActor* _earthCameraActor;
 	/* -------------------- */
 
 
@@ -78,9 +66,6 @@ protected:
 	STAMINA_STATUS _staminaStatus;
 	/* ------------------------------------- */
 
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement/View variables")
-	bool _bOnChase;
 
 	/* ----- Input Actions ----- */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
@@ -144,7 +129,7 @@ protected:
 
 	/* ----- Items ----- */
 	UPROPERTY(EditAnywhere, Category = "Camera")
-	class USceneComponent* _holdingComponent;
+	class UStaticMeshComponent* _holdingComponent;
 
 	bool _bCanMove;
 	/* ----------------- */
@@ -172,7 +157,8 @@ public:
 	// Get the current hand item
 	class AItem* GetCurrentHandItem();
 
-	class USceneComponent* GetHoldingComponent() { return _holdingComponent; }
+	// Get the holding component
+	class UStaticMeshComponent* GetHoldingComponent() { return _holdingComponent; }
 
 	void ToggleMovement(bool& bInspecting);
 

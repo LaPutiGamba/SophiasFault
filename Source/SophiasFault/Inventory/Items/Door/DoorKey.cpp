@@ -11,6 +11,7 @@ ADoorKey::ADoorKey()
 	PrimaryActorTick.bCanEverTick = true;
 
 	_keyID = 0;
+	_bUsedKey = false;
 }
 
 void ADoorKey::BeginPlay()
@@ -65,9 +66,10 @@ void ADoorKey::OnAction()
 
 	if (GetWorld()->LineTraceSingleByChannel(hit, start, end, ECC_Visibility, FComponentQueryParams::DefaultQueryParam, FCollisionResponseParams::DefaultResponseParam)) {
 		if (ADoor* door = Cast<ADoor>(hit.GetActor())) {
-			if (door->_keyID == _keyID) {
+			if (door->_keyID == _keyID && !_bUsedKey && door->_bDoorLocked) {
 				door->_bDoorLocked = false;
 				door->_bOpenState = false;
+				_bUsedKey = true;
 				_soundComponent->Play();
 
 				Cast<ASophia>(GetWorld()->GetFirstPlayerController()->GetPawn())->GetInventory()->RemoveItem(this);

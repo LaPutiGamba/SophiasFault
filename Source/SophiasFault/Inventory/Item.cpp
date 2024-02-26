@@ -29,6 +29,9 @@ AItem::AItem()
 	_itemComponent = nullptr;
 	_bNoSwitchableItem = false;
 	_myGameState = nullptr;
+
+	_pickUpLocation = FVector(50.f, 30.f, -12.f);
+	_inspectDistance = 100.0f;
 }
 
 void AItem::BeginPlay()
@@ -37,22 +40,11 @@ void AItem::BeginPlay()
 
 	_myGameState = GetWorld() != nullptr ? GetWorld()->GetGameState<AGMS_MyGameStateBase>() : nullptr;
 
-	_myCharacter = UGameplayStatics::GetPlayerCharacter(this, 0);
-	_playerCamera = _myCharacter->FindComponentByClass<UCameraComponent>();
+	_myCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	_playerCamera = Cast<ASophia>(_myCharacter)->GetCameraComponent();
 	_owningInventory = Cast<ASophia>(_myCharacter)->GetInventory();
-
-	TArray<USceneComponent*> components;
-	_myCharacter->GetComponents(components);
+	_itemComponent = Cast<ASophia>(_myCharacter)->GetHoldingComponent();
 
 	if (_metaSound != nullptr && _soundComponent != nullptr)
 		_soundComponent->SetSound(_metaSound);
-
-	if (components.Num() > 0) {
-		for (auto& comp : components) {
-			if (comp->GetName() == "HoldingComponent") {
-				_itemComponent = Cast<USceneComponent>(comp);
-				break;
-			}
-		}
-	}
 }

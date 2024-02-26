@@ -18,8 +18,6 @@ UInventoryComponent::UInventoryComponent()
     PrimaryComponentTick.bCanEverTick = true;
 	_capacity = 10;
 
-    _itemInspectDistance = 120.f;
-
     _bHoldingItem = false;
     _bInspecting = false;
     _bInspectingPressed = false;
@@ -124,17 +122,18 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
             _cameraComponent->SetFieldOfView(FMath::Lerp(_cameraComponent->FieldOfView, 90.f, 0.1f));
 
             // Also we get a vector calculating where to put the item. In this case, in the middle of the screen.
-            FVector holdingComponentVector = (_cameraComponent->GetComponentLocation() + (_cameraComponent->GetForwardVector() * _itemInspectDistance));
-            _holdingComponent->SetWorldLocation(holdingComponentVector);
+            if (_currentHandItem != nullptr) {
+                FVector holdingComponentVector = (_cameraComponent->GetComponentLocation() + (_cameraComponent->GetForwardVector() * _currentHandItem->_inspectDistance));
+                _holdingComponent->SetWorldLocation(holdingComponentVector);
 
-            // We set the maximum and the minimum pith view to the highest possible values to be able to rotate the object 360�.
-            GetWorld()->GetFirstPlayerController()->PlayerCameraManager->ViewPitchMax = 179.9000002f;
-            GetWorld()->GetFirstPlayerController()->PlayerCameraManager->ViewPitchMin = -179.9000002f;
+                // We set the maximum and the minimum pith view to the highest possible values to be able to rotate the object 360�.
+                GetWorld()->GetFirstPlayerController()->PlayerCameraManager->ViewPitchMax = 179.9000002f;
+                GetWorld()->GetFirstPlayerController()->PlayerCameraManager->ViewPitchMin = -179.9000002f;
 
-            // If we are holding an Item, we will call his rotate function.
-            if (_currentHandItem != nullptr)
+                // If we are holding an Item, we will call his rotate function.
                 if (Cast<IPickUpInterface>(_currentHandItem))
                     Cast<IPickUpInterface>(_currentHandItem)->RotateItem(_currentHandItem);
+            }
         }
     } else {
         // If it's not pressing the inspecting key we will put the field of view to the screen.
@@ -142,10 +141,10 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
 
         // If it's not pressing the inspecting key and it's holding any item, it will put the item in the hand position.
         if (_bHoldingItem) {
-            if (_currentHandItem != nullptr)
-                _currentHandItem->SetActorRotation(_holdingComponent->GetRelativeRotation());
-
-            _holdingComponent->SetRelativeLocation(FVector(50.f, 14.f, -12.f));
+            if (_currentHandItem != nullptr) {
+                _currentHandItem->_itemComponent->SetRelativeRotation(_currentHandItem->_pickUpRotation);
+                _holdingComponent->SetRelativeLocation(_currentHandItem->_pickUpLocation);
+            }
         }
     }
 
@@ -193,8 +192,10 @@ bool UInventoryComponent::RemoveItem(AItem* item, bool deleteCurrentHandItem)
 
         _bHoldingItem = !_bHoldingItem;
 
-        if (deleteCurrentHandItem)
+        if (deleteCurrentHandItem) {
             _currentHandItem = nullptr;
+            _holdingComponent->SetStaticMesh(nullptr);
+        }
 
 		return true;
 	}
@@ -211,6 +212,7 @@ void UInventoryComponent::ChangeCurrentHandItem(const FInputActionValue& value, 
     if (_items[_currentItemSlotIndex] != nullptr) {
         _items[_currentItemSlotIndex]->SetActorHiddenInGame(true);
         _currentHandItem->SetActorHiddenInGame(true);
+        _holdingComponent->SetStaticMesh(nullptr);
     }
 
     // Check if the input is from a number key (0-9)
@@ -234,6 +236,7 @@ void UInventoryComponent::ChangeCurrentHandItem(const FInputActionValue& value, 
         _items[_currentItemSlotIndex]->SetActorHiddenInGame(false);
         _currentHandItem = _items[_currentItemSlotIndex];
         _currentHandItem->SetActorHiddenInGame(false);
+        _holdingComponent->SetStaticMesh(_currentHandItem->_meshComponent->GetStaticMesh());
         _bHoldingItem = true;
     // If the slot is empty, we will set the _currentHandItem to nullptr
     } else {
@@ -242,7 +245,7 @@ void UInventoryComponent::ChangeCurrentHandItem(const FInputActionValue& value, 
     }
 }
 
-void UInventoryComponent::InspectItem(const FInputActionValue&)
+void UInventoryComponent::InspectItem(const FInputActionValue& value)
 {
     _bInspectingPressed = !_bInspectingPressed;
 

@@ -26,7 +26,7 @@ public:
 	UStaticMeshComponent* _meshComponent;
 
 	UPROPERTY(EditAnywhere)
-	class USceneComponent* _itemComponent;
+	UStaticMeshComponent* _itemComponent;
 
 	UPROPERTY(EditAnywhere)
 	FString _name;
@@ -43,6 +43,13 @@ public:
 	class UAudioComponent* _soundComponent;
 
 	// GENERAL VARIABLES
+	UPROPERTY(EditAnywhere, Category = "General Variables")
+	FVector _pickUpLocation;
+	UPROPERTY(EditAnywhere, Category = "General Variables")
+	FRotator _pickUpRotation;
+	UPROPERTY(EditAnywhere, Category = "General Variables")
+	float _inspectDistance;
+
 	class UInventoryComponent* _owningInventory;
 
 	class AGMS_MyGameStateBase* _myGameState;

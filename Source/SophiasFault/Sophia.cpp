@@ -64,8 +64,8 @@ ASophia::ASophia()
 	_staminaStatus = ST_IDLE;
 
 	// Init of ITEMS variables
-	_holdingComponent = CreateDefaultSubobject<USceneComponent>(TEXT("HoldingComponent"));
-	_holdingComponent->SetRelativeLocation(FVector(50.f, 14.f, -12.f));
+	_holdingComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HoldingComponent"));
+	_holdingComponent->SetRelativeLocation(FVector(50.f, 25.f, -12.f));
 	_holdingComponent->SetupAttachment(_cameraComponent);
 
 	_bCanMove = true;
@@ -80,20 +80,6 @@ void ASophia::BeginPlay()
 	if (_playerController) {
 		if (UEnhancedInputLocalPlayerSubsystem *Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(_playerController->GetLocalPlayer()))
 			Subsystem->AddMappingContext(_mainMappingContext, 0);
-	}
-	
-	TArray<AActor*> pianoCameraSearch;
-	UGameplayStatics::GetAllActorsWithTag(GetWorld(), "PianoCamera", pianoCameraSearch);
-
-	for (const auto& result : pianoCameraSearch) {
-		_pianoCameraActor = Cast<AActor>(result);
-	}
-
-	TArray<AActor*> earthCameraSearch;
-	UGameplayStatics::GetAllActorsWithTag(GetWorld(), "EarthCamera", earthCameraSearch);
-
-	for (const auto& result : earthCameraSearch) {
-		_earthCameraActor = Cast<AActor>(result);
 	}
 
 	// Inventory Widget
@@ -324,7 +310,7 @@ void ASophia::DropItem(const FInputActionValue& value)
 	if (_inventory->_currentHandItem != nullptr)
 		if (!_inventory->_currentHandItem->_bNoSwitchableItem)
 			if (Cast<IPickUpInterface>(_inventory->_currentHandItem))
-				Cast<IPickUpInterface>(_inventory->_currentHandItem)->DropItem(_inventory->_currentHandItem, _cameraComponent);
+				Cast<IPickUpInterface>(_inventory->_currentHandItem)->DropItem(_inventory->_currentHandItem);
 }
 
 void ASophia::ToggleMovement(bool& bInspecting)

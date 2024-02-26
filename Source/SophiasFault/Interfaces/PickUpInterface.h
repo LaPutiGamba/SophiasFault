@@ -23,6 +23,6 @@ public:
 	FRotator _controlRotation;
 
 	virtual void PickUpItem(class AItem* item);
-	virtual void DropItem(class AItem* item, class UCameraComponent* cameraComponent);
+	virtual void DropItem(class AItem* item);
 	virtual void RotateItem(class AItem* item);
 };

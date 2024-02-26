@@ -9,11 +9,6 @@ ADoor::ADoor()
 	_bOpenState = false;
 	_bReadyState = true;
 	_bDoorLocked = true;
-
-	_doorFrameComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Door Frame"));
-	RootComponent = _doorFrameComponent;
-
-	_meshComponent->SetupAttachment(_doorFrameComponent);
 }
 
 void ADoor::BeginPlay()
@@ -38,9 +33,10 @@ void ADoor::ControlDoor(float value)
 {
 	_timelineValue = _timelineComponent->GetPlaybackPosition();
 	_curveFloatValue = _bRotateDirection ? _curveFloat->GetFloatValue(_timelineValue) : (- 1.f * _curveFloat->GetFloatValue(_timelineValue));
+	float newRotation = _curveFloatValue - _rotationApplied;
+	_rotationApplied += newRotation;
 
-	FQuat newRotation = FQuat(FRotator(0.f, _curveFloatValue, 0.f));
-	_meshComponent->SetRelativeRotation(newRotation);
+	AddActorLocalRotation(FRotator(0.f, newRotation, 0.f));
 }
 
 void ADoor::SetState()

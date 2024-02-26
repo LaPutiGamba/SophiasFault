@@ -66,7 +66,6 @@ void APianoCamera::LookPianoSheet(const FInputActionValue& value)
 
 	FTimerHandle blendCameraHandle;
 	if (bIsPianoSheet) {
-		printFloat(_myGameState->_onBlendTime);
 		GetWorld()->GetTimerManager().SetTimer(blendCameraHandle, [this]() {
 			_playerController->SetViewTargetWithBlend(_sheetCamera, 0.5f);
 			_myGameState->_onBlendTime = 0.5f;
@@ -75,7 +74,6 @@ void APianoCamera::LookPianoSheet(const FInputActionValue& value)
 			_playerController->bEnableMouseOverEvents = false;
 		}, _myGameState->_onBlendTime, false);
 	} else {
-		printFloat(_myGameState->_onBlendTime);
 		GetWorld()->GetTimerManager().SetTimer(blendCameraHandle, [this]() {
 			_playerController->SetViewTargetWithBlend(this, 0.5f);
 			_myGameState->_onBlendTime = 0.5f;
@@ -88,19 +86,19 @@ void APianoCamera::LookPianoSheet(const FInputActionValue& value)
 
 void APianoCamera::ActivatePianoSolution()
 {
-	if (_pianoHollowKey != nullptr && _doorKey != nullptr) {
+	if (_pianoHollowKey != nullptr) {
 		_pianoHollowKey->_curveFloat = _curveFloatFinal;
 		_pianoHollowKey->_timelineComponent->AddInterpFloat(_pianoHollowKey->_curveFloat, _pianoHollowKey->_timelineCallback);
 		_pianoHollowKey->_timelineComponent->PlayFromStart();
 
 		if (_pianoHollowKey->_soundComponent != nullptr) {
-			_pianoHollowKey->_soundComponent->SetIntParameter("Piano Note", 13);
+			_pianoHollowKey->_soundComponent->SetIntParameter("Piano Note", _pianoHollowKey->_pianoKeyID);
 			_pianoHollowKey->_soundComponent->Play();
 		}
 
-		FTimerHandle doorTimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(doorTimerHandle, [this]() {
-			_doorKey->_timelineComponent->PlayFromStart();
-		}, 9.f, false);
+		FTimerHandle drawerTimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(drawerTimerHandle, [this]() {
+			_drawer->AddActorLocalOffset(FVector(30.f, 0.f, 0.f));
+		}, 10.f, false);
 	}
 }

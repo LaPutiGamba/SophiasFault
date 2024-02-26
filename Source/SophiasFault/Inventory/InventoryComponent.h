@@ -17,12 +17,11 @@ public:
 
 	class APlayerController* _playerController;
 	class UCameraComponent* _cameraComponent;
-	class USceneComponent* _holdingComponent;
+	class UStaticMeshComponent* _holdingComponent;
 	class AGMS_MyGameStateBase* _myGameState;
 
 	float _pitchMax;
 	float _pitchMin;
-	float _itemInspectDistance;
 	FRotator _lastRotation;
 
 	FHitResult _hit;
