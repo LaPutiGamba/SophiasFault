@@ -27,6 +27,9 @@ void ADoor::BeginPlay()
 
 	if (playerController != nullptr) 
 		_sophiaCharacter = Cast<ASophia>(playerController->GetPawn());
+
+	if (_metaSound != nullptr)
+		_soundComponent->SetSound(_metaSound);
 }
 
 void ADoor::ControlDoor(float value)
@@ -50,31 +53,22 @@ void ADoor::UseInteraction()
 		_bOpenState = !_bOpenState;
 
 		if (_bOpenState) {
-			if (_metaSound != nullptr) 
-				_soundComponent->SetSound(_metaSound);
-
 			_bReadyState = false;
 			_timelineComponent->PlayFromStart();
+
+			_soundComponent->SetIntParameter("Door State", 0);
 			_soundComponent->Play();
 		} else {
-			if (_metaSoundClose != nullptr)
-				_soundComponent->SetSound(_metaSoundClose);
-
 			_bReadyState = false;
 			_timelineComponent->Reverse();
 
-			FTimerHandle playSoundTimerHandle;
-			GetWorld()->GetTimerManager().SetTimer(playSoundTimerHandle, [this]() {
-				_soundComponent->Play();
-			}, 0.5f, false);
+			_soundComponent->SetIntParameter("Door State", 1);
+			_soundComponent->Play();
 		}
 	}
 
 	if (_bDoorLocked && !_soundComponent->IsPlaying()) {
-		if (_metaSoundLocked != nullptr) {
-			_soundComponent->SetSound(_metaSoundLocked);
-			
-			_soundComponent->Play();
-		}
+		_soundComponent->SetIntParameter("Door State", 2);
+		_soundComponent->Play();
 	}
 }

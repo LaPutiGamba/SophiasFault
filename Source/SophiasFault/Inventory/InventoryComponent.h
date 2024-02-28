@@ -18,6 +18,7 @@ public:
 	class APlayerController* _playerController;
 	class UCameraComponent* _cameraComponent;
 	class UStaticMeshComponent* _holdingComponent;
+	class USpotLightComponent* _flashlightComponent;
 	class AGMS_MyGameStateBase* _myGameState;
 
 	float _pitchMax;
@@ -43,7 +44,6 @@ public:
 	class AItem* _currentHandItem;
 	class AItem* _currentItemInSight;
 	class AActor* _currentChangeCameraItem;
-	class AFlashlight* _flashlightItem;
 
 	bool _bHoldingItem;
 	bool _bInspecting;

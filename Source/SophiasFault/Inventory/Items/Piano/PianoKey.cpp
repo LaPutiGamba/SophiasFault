@@ -64,12 +64,9 @@ void APianoKey::UseInteraction()
 				_myGameState->GetPianoKeysPressed()->Reset();
 
                 if (FMath::RandRange(0, 7) == 0) {
-                    APlayerController* playerController = GetWorld()->GetFirstPlayerController();
-                    if (playerController != nullptr) {
-                        UUserWidget* dialogueWidget = CreateWidget<UUserWidget>(playerController, _dialogueWidgetClass);
-                        if (dialogueWidget) {
-                            UTextBlock* dialogueTextBlock = Cast<UTextBlock>(dialogueWidget->GetWidgetFromName("DialogueText"));
-                            if (dialogueTextBlock) {
+					if (APlayerController* playerController = GetWorld()->GetFirstPlayerController()) {
+                        if (UUserWidget* dialogueWidget = CreateWidget<UUserWidget>(playerController, _dialogueWidgetClass)) {
+                            if (UTextBlock* dialogueTextBlock = Cast<UTextBlock>(dialogueWidget->GetWidgetFromName("DialogueText"))) {
                                 FText newText = FText::FromString("This doesn't sound very good, I think I'm doing something wrong...");
                                 dialogueTextBlock->SetText(newText);
                             }

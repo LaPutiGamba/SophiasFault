@@ -19,7 +19,7 @@ void ACloseDoor::SetState()
 
 void ACloseDoor::OnTriggerStart()
 {
-	if (!_bTriggeredOnce) {
+	if (!_bTriggeredOnce && _metaSound != nullptr) {
 		_bTriggeredOnce = true;
 		_bDoorLocked = true;
 
@@ -31,10 +31,8 @@ void ACloseDoor::OnTriggerStart()
 				_timelineComponent->PlayFromStart();
 				_bClosingDoorAnim = true;
 
-				if (_metaSoundFastClose != nullptr) {
-					_soundComponent->SetSound(_metaSoundFastClose);
-					_soundComponent->Play();
-				}
+				_soundComponent->SetIntParameter("Door State", 3);
+				_soundComponent->Play();
 			}
 		}, 0.5f, false);
 	}

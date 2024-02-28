@@ -40,11 +40,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Door")
 	uint8 _keyID;
 
-	UPROPERTY(EditAnywhere, Category = "Audio")
-	class USoundBase* _metaSoundClose;
-	UPROPERTY(EditAnywhere, Category = "Audio")
-	class USoundBase* _metaSoundLocked;
-
 	virtual void BeginPlay() override;
 
 	UFUNCTION()

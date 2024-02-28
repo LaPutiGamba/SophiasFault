@@ -12,6 +12,7 @@
 #include "Blueprint/UserWidget.h"
 #include "../Sophia.h"
 #include "../Macros.h"
+#include "DrawDebugHelpers.h"
 
 UInventoryComponent::UInventoryComponent()
 {
@@ -24,7 +25,6 @@ UInventoryComponent::UInventoryComponent()
 
 	_currentItemSlotIndex = 0;
 	_currentItemInSight = nullptr;
-    _flashlightItem = nullptr;
 	_currentChangeCameraItem = nullptr;
 	_currentHandItem = nullptr;
 	_cameraComponent = nullptr;
@@ -42,6 +42,7 @@ void UInventoryComponent::BeginPlay()
     _playerController = GetWorld()->GetFirstPlayerController();
     _cameraComponent = Cast<ASophia>(_playerController->GetPawn())->GetCameraComponent();
     _holdingComponent = Cast<ASophia>(_playerController->GetPawn())->GetHoldingComponent();
+    _flashlightComponent = Cast<ASophia>(_playerController->GetPawn())->GetFlashlightComponent();
 
     if (_playerController->PlayerCameraManager)
         _pitchMax = _playerController->PlayerCameraManager->ViewPitchMax;
@@ -64,54 +65,45 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
     _end = ((_forwardVector * 200.f) + _start);
 
     // CHECK FOR ITEMS
-    if (!_bHoldingItem) {
-        if (GetWorld()->LineTraceSingleByChannel(_hit, _start, _end, ECC_Visibility, FComponentQueryParams::DefaultQueryParam, FCollisionResponseParams::DefaultResponseParam)) {
-            // If the player has in sight the Flashlight saves a pointer to that Actor.
-            if (Cast<AFlashlight>(_hit.GetActor())) {
-                _flashlightItem = Cast<AFlashlight>(_hit.GetActor());
+    if (GetWorld()->LineTraceSingleByChannel(_hit, _start, _end, ECC_Visibility, FComponentQueryParams::DefaultQueryParam, FCollisionResponseParams::DefaultResponseParam)) {
+        // If the player has in sight a Current Change Camera Item saves a pointer to that Actor.
+        if (_hit.GetActor()->GetClass()->ImplementsInterface(UActorBlendInterface::StaticClass())) {
+            _currentChangeCameraItem = _hit.GetActor();
 
-                if (_myGameState->_hudWidget != nullptr) 
-                    _myGameState->_hudWidget->SetRenderOpacity(1.f);
-                return;
-            }
-
-            // If the player has in sight a Current Change Camera Item saves a pointer to that Actor.
-            if (AActor* actorBlendCamera = Cast<AActor>(_hit.GetActor())) {
-                if (actorBlendCamera->GetClass()->ImplementsInterface(UActorBlendInterface::StaticClass())) {
-                    _currentChangeCameraItem = actorBlendCamera;
-
-                    if (_myGameState->_hudWidget != nullptr)
-                        _myGameState->_hudWidget->SetRenderOpacity(1.f);
-                    return;
-                }
+            if (_myGameState->_hudWidget != nullptr) {
+                _myGameState->_hudWidget->GetWidgetFromName("NoVisibleItem")->SetVisibility(ESlateVisibility::Hidden);
+                _myGameState->_hudWidget->GetWidgetFromName("VisibleItem")->SetVisibility(ESlateVisibility::Visible);
             }
 
             // If the player has in sight an Item saves a pointer to that Actor.
-            if (_hit.GetActor()->GetClass()->ImplementsInterface(UInteractiveInterface::StaticClass()) ||
-                _hit.GetActor()->GetClass()->ImplementsInterface(UPickUpInterface::StaticClass()) ||
-                _hit.GetActor()->GetClass()->ImplementsInterface(UOnActionInterface::StaticClass())) {
-                _currentItemInSight = Cast<AItem>(_hit.GetActor());
+        } else if (_hit.GetActor()->GetClass()->ImplementsInterface(UInteractiveInterface::StaticClass()) ||
+            _hit.GetActor()->GetClass()->ImplementsInterface(UPickUpInterface::StaticClass()) ||
+            _hit.GetActor()->GetClass()->ImplementsInterface(UOnActionInterface::StaticClass())) {
+            _currentItemInSight = Cast<AItem>(_hit.GetActor());
 
-                if (_myGameState->_hudWidget != nullptr)
-                    _myGameState->_hudWidget->SetRenderOpacity(1.f);
-                return;
+            if (_myGameState->_hudWidget != nullptr) {
+                _myGameState->_hudWidget->GetWidgetFromName("NoVisibleItem")->SetVisibility(ESlateVisibility::Hidden);
+                _myGameState->_hudWidget->GetWidgetFromName("VisibleItem")->SetVisibility(ESlateVisibility::Visible);
             }
 
             // If the player doesn't has in sight any item, all the items are null.
-            _flashlightItem = nullptr;
-            _currentChangeCameraItem = nullptr;
-            _currentItemInSight = nullptr;
-
-            if (_myGameState->_hudWidget != nullptr)
-                _myGameState->_hudWidget->SetRenderOpacity(0.25f);
         } else {
-            // If the player doesn't has in sight any item, all the items are null.
-            _flashlightItem = nullptr;
             _currentChangeCameraItem = nullptr;
             _currentItemInSight = nullptr;
 
-            if (_myGameState->_hudWidget != nullptr)
-				_myGameState->_hudWidget->SetRenderOpacity(0.25f);
+            if (_myGameState->_hudWidget != nullptr) {
+                _myGameState->_hudWidget->GetWidgetFromName("NoVisibleItem")->SetVisibility(ESlateVisibility::Visible);
+                _myGameState->_hudWidget->GetWidgetFromName("VisibleItem")->SetVisibility(ESlateVisibility::Hidden);
+            }
+        }
+    // If the player doesn't has in sight any item, all the items are null
+    } else {
+        _currentChangeCameraItem = nullptr;
+        _currentItemInSight = nullptr;
+
+        if (_myGameState->_hudWidget != nullptr) {
+            _myGameState->_hudWidget->GetWidgetFromName("NoVisibleItem")->SetVisibility(ESlateVisibility::Visible);
+            _myGameState->_hudWidget->GetWidgetFromName("VisibleItem")->SetVisibility(ESlateVisibility::Hidden);
         }
     }
 
@@ -148,8 +140,12 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
         }
     }
 
-    // NO SWITCHEABLE ITEMS
     if (_currentHandItem != nullptr) {
+        if (_currentHandItem->IsA<AFlashlight>()) {
+            
+        }
+
+        // NO SWITCHEABLE ITEMS
         if (_currentHandItem->_bNoSwitchableItem) {
             if (AStair* stair = Cast<AStair>(_currentHandItem)) {
                 if (stair->_triggered)

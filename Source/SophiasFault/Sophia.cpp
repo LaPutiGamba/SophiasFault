@@ -16,6 +16,7 @@
 #include "Interfaces/ActorBlendInterface.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/SpotLightComponent.h" 
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -67,6 +68,9 @@ ASophia::ASophia()
 	_holdingComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HoldingComponent"));
 	_holdingComponent->SetRelativeLocation(FVector(50.f, 25.f, -12.f));
 	_holdingComponent->SetupAttachment(_cameraComponent);
+
+	_flashlightComponent = CreateDefaultSubobject<USpotLightComponent>(TEXT("FlashlightComponent"));
+	_flashlightComponent->SetupAttachment(_holdingComponent);
 
 	_bCanMove = true;
 }
@@ -274,33 +278,26 @@ void ASophia::OnAction(const FInputActionValue &value)
 	if (_inventory->_currentHandItem) {
 		if (IOnActionInterface* onActionItem = Cast<IOnActionInterface>(_inventory->_currentHandItem)) {
 			onActionItem->OnAction();
-			return;
 		}
 	}
 
-	if (_inventory->_currentItemInSight) {
-		if (IInteractiveInterface* interactiveItem = Cast<IInteractiveInterface>(_inventory->_currentItemInSight)) {
-			interactiveItem->UseInteraction();
-		} else if (IPickUpInterface* pickUpItem = Cast<IPickUpInterface>(_inventory->_currentItemInSight)) {
-			pickUpItem->PickUpItem(_inventory->_currentItemInSight);
-		}
-	} else if (_inventory->_flashlightItem) {
-		if (IPickUpInterface* flashlightItem = Cast<IPickUpInterface>(_inventory->_flashlightItem)) {
-			flashlightItem->PickUpItem(_inventory->_flashlightItem);
-		}
-	} else if (_inventory->_currentChangeCameraItem) {
+	if (_inventory->_currentChangeCameraItem) {
 		if (_inventory->_currentChangeCameraItem->GetClass()->ImplementsInterface(UActorBlendInterface::StaticClass())) {
 			IActorBlendInterface* changeCameraItem = Cast<IActorBlendInterface>(_inventory->_currentChangeCameraItem);
 
 			if (changeCameraItem->_cameraActorBlend) {
-				if (IInteractiveInterface* cameraItem = Cast<IInteractiveInterface>(changeCameraItem)) {
+				if (IInteractiveInterface* cameraItem = Cast<IInteractiveInterface>(changeCameraItem))
 					cameraItem->UseInteraction();
-				}
 
-				if (ICameraBlendInterface* item = Cast<ICameraBlendInterface>(changeCameraItem->_cameraActorBlend)) {
+				if (ICameraBlendInterface* item = Cast<ICameraBlendInterface>(changeCameraItem->_cameraActorBlend))
 					item->UseInteraction();
-				}
 			}
+		}
+	} else if (_inventory->_currentItemInSight) {
+		if (IInteractiveInterface* interactiveItem = Cast<IInteractiveInterface>(_inventory->_currentItemInSight)) {
+			interactiveItem->UseInteraction();
+		} else if (IPickUpInterface* pickUpItem = Cast<IPickUpInterface>(_inventory->_currentItemInSight)) {
+			pickUpItem->PickUpItem(_inventory->_currentItemInSight);
 		}
 	}
 }

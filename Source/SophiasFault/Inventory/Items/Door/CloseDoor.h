@@ -16,9 +16,6 @@ public:
 	bool _bClosingDoorAnim;
 	bool _bTriggeredOnce;
 
-	UPROPERTY(EditAnywhere, Category = "Audio")
-	class USoundBase* _metaSoundFastClose;
-
 	UPROPERTY(EditAnywhere, Category = "Timeline")
 	class UCurveFloat* _curveFloatClose;
 

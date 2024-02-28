@@ -14,6 +14,9 @@ public:
 	ACameraMonitor();
 	virtual void BeginPlay() override;
 
+	UPROPERTY(EditAnywhere, Category = "Blend", meta = (DisplayPriority = "1"))
+	FName _cameraTag;
+
 	UPROPERTY(EditAnywhere, Category = "Mesh")
 	class UStaticMeshComponent* _meshComponent;
 

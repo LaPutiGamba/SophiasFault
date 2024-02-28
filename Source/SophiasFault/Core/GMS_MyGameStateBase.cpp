@@ -34,7 +34,7 @@ void AGMS_MyGameStateBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	_bOnChase = false;
+	_bOnChase = true;
 }
 
 void AGMS_MyGameStateBase::ActivatePianoSolution()

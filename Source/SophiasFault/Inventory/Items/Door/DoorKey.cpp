@@ -67,17 +67,19 @@ void ADoorKey::OnAction()
 	if (GetWorld()->LineTraceSingleByChannel(hit, start, end, ECC_Visibility, FComponentQueryParams::DefaultQueryParam, FCollisionResponseParams::DefaultResponseParam)) {
 		if (ADoor* door = Cast<ADoor>(hit.GetActor())) {
 			if (door->_keyID == _keyID && !_bUsedKey && door->_bDoorLocked) {
-				door->_bDoorLocked = false;
-				door->_bOpenState = false;
-				_bUsedKey = true;
-				_soundComponent->Play();
+				if (_metaSound != nullptr) {
+					door->_bDoorLocked = false;
+					door->_bOpenState = false;
+					_bUsedKey = true;
+					_soundComponent->Play();
 
-				Cast<ASophia>(GetWorld()->GetFirstPlayerController()->GetPawn())->GetInventory()->RemoveItem(this);
-				SetActorHiddenInGame(true);
-				FTimerHandle destroyTimerHandle;
-				GetWorld()->GetTimerManager().SetTimer(destroyTimerHandle, [this]() {
-					Destroy();
-				}, _metaSound->GetDuration(), false);
+					Cast<ASophia>(GetWorld()->GetFirstPlayerController()->GetPawn())->GetInventory()->RemoveItem(this);
+					SetActorHiddenInGame(true);
+					FTimerHandle destroyTimerHandle;
+					GetWorld()->GetTimerManager().SetTimer(destroyTimerHandle, [this]() {
+						Destroy();
+						}, _metaSound->GetDuration(), false);
+				}
 			} else {
 				if (!door->_bDoorLocked) 
 					door->UseInteraction();

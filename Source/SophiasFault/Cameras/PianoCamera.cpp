@@ -3,6 +3,8 @@
 #include "../Inventory/Items/Door/DoorKey.h"
 #include "Components/AudioComponent.h" 
 #include "Kismet/GameplayStatics.h"
+#include "Blueprint/UserWidget.h"
+#include "Components/TextBlock.h" 
 #include "../Sophia.h"
 #include "../Macros.h"
 
@@ -10,6 +12,11 @@
 
 APianoCamera::APianoCamera()
 {
+	ConstructorHelpers::FClassFinder<UUserWidget> keyHelperFinderClass(TEXT("/Game/Items/Widgets/WBP_KeyHelper"));
+	if (keyHelperFinderClass.Succeeded())
+		_keyHelperWidgetClass = keyHelperFinderClass.Class;
+	else
+		_keyHelperWidgetClass = nullptr;
 }
 
 void APianoCamera::UseInteraction()
@@ -28,19 +35,34 @@ void APianoCamera::UseInteraction()
 			_clickInteractiveHandle = &_enhancedInputComponent->BindAction(_clickInteractiveAction, ETriggerEvent::Triggered, this, &APianoCamera::ClickInteractive);
 			_blendCameraHandle = &_enhancedInputComponent->BindAction(_blendCameraAction, ETriggerEvent::Triggered, this, &APianoCamera::LookPianoSheet);
 		}
+
+		_keyHelperWidget = CreateWidget<UUserWidget>(_playerController, _keyHelperWidgetClass);
+		if (_keyHelperWidget != nullptr) {
+			if (UTextBlock* keyHelperTextBlock = Cast<UTextBlock>(_keyHelperWidget->GetWidgetFromName("KeyHelper"))) {
+				FText newText = FText::FromString("W");
+				keyHelperTextBlock->SetText(newText);
+			}
+
+			_keyHelperWidget->AddToViewport();
+		}
 	}
 }
 
 void APianoCamera::BlendBack()
 {
 	ACameraBlend::BlendBack();
-
+	
 	if (_enhancedInputComponent) {
 		_enhancedInputComponent->RemoveBinding(*_clickInteractiveHandle);
 		_enhancedInputComponent->RemoveBinding(*_blendCameraHandle);
 	}
 
 	Cast<ASophia>(GetWorld()->GetFirstPlayerController()->GetPawn())->GetInventory()->_currentChangeCameraItem = nullptr;
+
+	if (_keyHelperWidget != nullptr) {
+		_keyHelperWidget->RemoveFromParent();
+		_keyHelperWidget = nullptr;
+	}
 }
 
 void APianoCamera::ClickInteractive(const FInputActionValue& value)
@@ -99,6 +121,7 @@ void APianoCamera::ActivatePianoSolution()
 		FTimerHandle drawerTimerHandle;
 		GetWorld()->GetTimerManager().SetTimer(drawerTimerHandle, [this]() {
 			_drawer->AddActorLocalOffset(FVector(30.f, 0.f, 0.f));
+			APianoCamera::BlendBack();
 		}, 10.f, false);
 	}
 }

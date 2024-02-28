@@ -36,24 +36,25 @@ void ACameraBlend::UseInteraction()
 
 void ACameraBlend::BlendBack()
 {
-	if (_myGameState->_onBlendTime <= 0.001f) {
-		_playerController->SetViewTargetWithBlend(_sophia, 0.75f);
-		_myGameState->_onBlendTime = 0.75f;
-		_playerController->bShowMouseCursor = false;
-		_playerController->bEnableClickEvents = false;
-		_playerController->bEnableMouseOverEvents = false;
+    if (_myGameState->_onBlendTime <= 0.001f) {
+        _playerController->SetViewTargetWithBlend(_sophia, 0.75f);
+        _myGameState->_onBlendTime = 0.75f;
+        _playerController->bShowMouseCursor = false;
+        _playerController->bEnableClickEvents = false;
+        _playerController->bEnableMouseOverEvents = false;
 
-		if (UEnhancedInputLocalPlayerSubsystem* subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(_playerController->GetLocalPlayer())) {
-			subsystem->RemoveMappingContext(_puzzleMappingContext);
-			subsystem->AddMappingContext(_mainMappingContext, 0);
-		}
 
-		if (_enhancedInputComponent)
-			_enhancedInputComponent->RemoveBinding(*_getUpHandle);
+        if (UEnhancedInputLocalPlayerSubsystem* subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(_playerController->GetLocalPlayer())) {
+            subsystem->RemoveMappingContext(_puzzleMappingContext);
+            subsystem->AddMappingContext(_mainMappingContext, 0);
+        }
 
-		if (_myGameState->_hudWidget == nullptr) {
-			_myGameState->_hudWidget = CreateWidget<UUserWidget>(_playerController, _myGameState->_hudWidgetClass);
-			_myGameState->_hudWidget->AddToViewport();
-		}
-	}
+        if (_enhancedInputComponent)
+            _enhancedInputComponent->RemoveBinding(*_getUpHandle);
+
+        if (_myGameState->_hudWidget == nullptr) {
+            _myGameState->_hudWidget = CreateWidget<UUserWidget>(_playerController, _myGameState->_hudWidgetClass);
+            _myGameState->_hudWidget->AddToViewport();
+        }
+    }
 }

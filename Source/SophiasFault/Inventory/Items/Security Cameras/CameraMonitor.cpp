@@ -43,6 +43,17 @@ void ACameraMonitor::BeginPlay()
 
 	if (_metaSound != nullptr && _soundComponent != nullptr)
 		_soundComponent->SetSound(_metaSound);
+
+	if (_cameraTag != "") {
+		TArray<AActor*> camerasActorBlend;
+		UGameplayStatics::GetAllActorsWithTag(GetWorld(), _cameraTag, camerasActorBlend);
+
+		for (AActor* cameraActor : camerasActorBlend) {
+			_cameraActorBlend = Cast<ACameraBlend>(cameraActor);
+			if (_cameraActorBlend)
+				break;
+		}
+	}
 }
 
 void ACameraMonitor::ChangeSecurityCamera()

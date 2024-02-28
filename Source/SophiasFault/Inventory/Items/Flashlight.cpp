@@ -1,6 +1,7 @@
 #include "Flashlight.h"
 #include "Components/SpotLightComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "../../Sophia.h"
 #include "../../Core/GMS_MyGameStateBase.h"
 #include "../../Macros.h"
 
@@ -19,11 +20,14 @@ void AFlashlight::BeginPlay()
 {
 	Super::BeginPlay();
 
-	_flashlight = AFlashlight::GetComponentByClass<USpotLightComponent>();
+	_playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+
+	_flashlight = Cast<ASophia>(_playerController->GetPawn())->GetFlashlightComponent();
+	_flashlight->SetRelativeLocation(FVector(0.f, 5.f, 0.f));
+	_flashlight->SetRelativeRotation(FRotator(0.f, 90.f, 0.f));
+
 	if (_flashlight != nullptr)
 		_flashlight->ToggleVisibility(false);
-
-	_playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 }
 
 void AFlashlight::Tick(float deltaTime)
@@ -75,14 +79,16 @@ void AFlashlight::Tick(float deltaTime)
 
 void AFlashlight::UseFlashlight(const FInputActionValue& value)
 {
-	if (_owningInventory->_flashlightItem != nullptr)
-		ToggleFlashlightOn();
+	if (_owningInventory->_currentHandItem != nullptr)
+		if (_owningInventory->_currentHandItem->IsA<AFlashlight>())
+			ToggleFlashlightOn();
 }
 
 void AFlashlight::RechargeFlashlight(const FInputActionValue& value)
 {
-	if (_owningInventory->_flashlightItem != nullptr)
-		ToggleRechargingFlashlight();
+	if (_owningInventory->_currentHandItem != nullptr)
+		if (_owningInventory->_currentHandItem->IsA<AFlashlight>())
+			ToggleRechargingFlashlight();
 }
 
 void AFlashlight::PickUpItem(AItem* item)

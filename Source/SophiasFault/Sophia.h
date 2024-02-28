@@ -131,6 +131,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Camera")
 	class UStaticMeshComponent* _holdingComponent;
 
+	UPROPERTY(EditAnywhere, Category = "Camera")
+	class USpotLightComponent* _flashlightComponent;
+
 	bool _bCanMove;
 	/* ----------------- */
 
@@ -159,6 +162,9 @@ public:
 
 	// Get the holding component
 	class UStaticMeshComponent* GetHoldingComponent() { return _holdingComponent; }
+
+	// Get the flashlight component
+	class USpotLightComponent* GetFlashlightComponent() { return _flashlightComponent; }
 
 	void ToggleMovement(bool& bInspecting);
 

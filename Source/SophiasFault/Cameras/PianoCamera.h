@@ -25,6 +25,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Cameras") 
 	ACameraActor* _sheetCamera;
 
+	class UUserWidget* _keyHelperWidget;
+	TSubclassOf<class UUserWidget> _keyHelperWidgetClass;
+
 	FInputBindingHandle* _clickInteractiveHandle;
 	FInputBindingHandle* _blendCameraHandle;
 
