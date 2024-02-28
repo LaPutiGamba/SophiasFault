@@ -7,7 +7,7 @@
 #include "Tickable.h"
 #include "Flashlight.generated.h"
 
-enum FLASHLIGHT_STATUS { ST_LIGHTON, ST_LIGHTOFF, ST_NEEDRECHARGE };
+enum FLASHLIGHT_STATE { ST_LIGHTON, ST_LIGHTOFF, ST_NEEDRECHARGE };
 
 UCLASS()
 class SOPHIASFAULT_API AFlashlight : public AItem, public FTickableGameObject, public IPickUpInterface
@@ -15,14 +15,14 @@ class SOPHIASFAULT_API AFlashlight : public AItem, public FTickableGameObject, p
 	GENERATED_BODY()
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement/View variables", meta = (ClampMin = "0.01", ClampMax = "10"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement/View variables", meta = (ClampMin = "0.01", ClampMax = "360"))
 	float _flashlightMaxDuration;
 
 	class USpotLightComponent* _flashlight;
 	bool _flashlightOn;
 	bool _rechargingFlashlight;
 	float _flashlightTimer;
-	FLASHLIGHT_STATUS _flashlightStatus;
+	FLASHLIGHT_STATE _flashlightState;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* _flashlightAction;

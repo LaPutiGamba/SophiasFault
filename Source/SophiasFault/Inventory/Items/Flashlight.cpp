@@ -11,8 +11,8 @@ AFlashlight::AFlashlight()
 	_flashlightOn = false;
 	_rechargingFlashlight = false;
 	_flashlightTimer = 0.f;
-	_flashlightMaxDuration = 10.f;
-	_flashlightStatus = ST_LIGHTOFF;
+	_flashlightMaxDuration = 360.f;
+	_flashlightState = ST_LIGHTOFF;
 	PrimaryActorTick.bCanEverTick = true;
 }
 
@@ -34,7 +34,7 @@ void AFlashlight::Tick(float deltaTime)
 {
 	Super::Tick(deltaTime);
 
-	switch (_flashlightStatus) {
+	switch (_flashlightState) {
 	case ST_LIGHTON:
 		if (_flashlight != nullptr)
 			_flashlight->SetVisibility(true);
@@ -42,10 +42,10 @@ void AFlashlight::Tick(float deltaTime)
 		if (_flashlightTimer < _flashlightMaxDuration)
 			_flashlightTimer += deltaTime;
 		else
-			_flashlightStatus = ST_NEEDRECHARGE;
+			_flashlightState = ST_NEEDRECHARGE;
 
 		if (!_flashlightOn)
-			_flashlightStatus = ST_LIGHTOFF;
+			_flashlightState = ST_LIGHTOFF;
 
 		_rechargingFlashlight = false;
 		break;
@@ -57,7 +57,7 @@ void AFlashlight::Tick(float deltaTime)
 			_flashlightTimer -= deltaTime;
 
 		if (_flashlightOn)
-			_flashlightStatus = ST_LIGHTON;
+			_flashlightState = ST_LIGHTON;
 		break;
 	case ST_NEEDRECHARGE:
 		_flashlightTimer = 0.f;
@@ -67,9 +67,9 @@ void AFlashlight::Tick(float deltaTime)
 
 		if (_rechargingFlashlight) {
 			if (_flashlightOn)
-				_flashlightStatus = ST_LIGHTON;
+				_flashlightState = ST_LIGHTON;
 			else
-				_flashlightStatus = ST_LIGHTOFF;
+				_flashlightState = ST_LIGHTOFF;
 		}
 		break;
 	default:
@@ -79,16 +79,24 @@ void AFlashlight::Tick(float deltaTime)
 
 void AFlashlight::UseFlashlight(const FInputActionValue& value)
 {
-	if (_owningInventory->_currentHandItem != nullptr)
-		if (_owningInventory->_currentHandItem->IsA<AFlashlight>())
+	if (_owningInventory->_currentHandItem != nullptr) {
+		if (_owningInventory->_currentHandItem->IsA<AFlashlight>()) {
 			ToggleFlashlightOn();
+			_soundComponent->SetIntParameter("Flashlight State", 0);
+			_soundComponent->Play();
+		}
+	}
 }
 
 void AFlashlight::RechargeFlashlight(const FInputActionValue& value)
 {
-	if (_owningInventory->_currentHandItem != nullptr)
-		if (_owningInventory->_currentHandItem->IsA<AFlashlight>())
+	if (_owningInventory->_currentHandItem != nullptr) {
+		if (_owningInventory->_currentHandItem->IsA<AFlashlight>()) {
 			ToggleRechargingFlashlight();
+			_soundComponent->SetIntParameter("Flashlight State", 1);
+			_soundComponent->Play();
+		}
+	}
 }
 
 void AFlashlight::PickUpItem(AItem* item)

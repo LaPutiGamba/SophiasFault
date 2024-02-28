@@ -26,24 +26,27 @@ void APianoCamera::UseInteraction()
 
 		_playerController->SetViewTargetWithBlend(this, 0.75f);
 		_myGameState->_onBlendTime = 0.75f;
-		_playerController->bShowMouseCursor = true;
-		_playerController->bEnableClickEvents = true;
-		_playerController->bEnableMouseOverEvents = true;
+
+		FTimerHandle blendCameraHandle;
+		GetWorld()->GetTimerManager().SetTimer(blendCameraHandle, [this]() {
+			_playerController->bShowMouseCursor = true;
+			_playerController->bEnableClickEvents = true;
+
+			_keyHelperWidget = CreateWidget<UUserWidget>(_playerController, _keyHelperWidgetClass);
+			if (_keyHelperWidget != nullptr) {
+				if (UTextBlock* keyHelperTextBlock = Cast<UTextBlock>(_keyHelperWidget->GetWidgetFromName("KeyHelper"))) {
+					FText newText = FText::FromString("W");
+					keyHelperTextBlock->SetText(newText);
+				}
+
+				_keyHelperWidget->AddToViewport();
+			}
+		}, 0.8f, false);
 
 		if (_enhancedInputComponent) {
 			_getUpHandle = &_enhancedInputComponent->BindAction(_getUpAction, ETriggerEvent::Triggered, this, &APianoCamera::BlendBack);
 			_clickInteractiveHandle = &_enhancedInputComponent->BindAction(_clickInteractiveAction, ETriggerEvent::Triggered, this, &APianoCamera::ClickInteractive);
 			_blendCameraHandle = &_enhancedInputComponent->BindAction(_blendCameraAction, ETriggerEvent::Triggered, this, &APianoCamera::LookPianoSheet);
-		}
-
-		_keyHelperWidget = CreateWidget<UUserWidget>(_playerController, _keyHelperWidgetClass);
-		if (_keyHelperWidget != nullptr) {
-			if (UTextBlock* keyHelperTextBlock = Cast<UTextBlock>(_keyHelperWidget->GetWidgetFromName("KeyHelper"))) {
-				FText newText = FText::FromString("W");
-				keyHelperTextBlock->SetText(newText);
-			}
-
-			_keyHelperWidget->AddToViewport();
 		}
 	}
 }

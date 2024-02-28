@@ -1,5 +1,7 @@
 #include "CameraBlend.h"
 #include "Blueprint/UserWidget.h" 
+#include "../Inventory/InventoryComponent.h"
+#include "../Inventory/Item.h"
 #include "../Macros.h"
 #include "../Sophia.h"
 
@@ -23,6 +25,9 @@ void ACameraBlend::BeginPlay()
 
 void ACameraBlend::UseInteraction() 
 {
+	if (_sophia->GetInventory()->_currentHandItem != nullptr)
+		_sophia->GetInventory()->_currentHandItem->_itemComponent->SetVisibility(false);
+
 	if (UEnhancedInputLocalPlayerSubsystem* subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(_playerController->GetLocalPlayer())) {
 		subsystem->RemoveMappingContext(_mainMappingContext);
 		subsystem->AddMappingContext(_puzzleMappingContext, 0);
@@ -37,12 +42,13 @@ void ACameraBlend::UseInteraction()
 void ACameraBlend::BlendBack()
 {
     if (_myGameState->_onBlendTime <= 0.001f) {
+		if (_sophia->GetInventory()->_currentHandItem != nullptr)
+			_sophia->GetInventory()->_currentHandItem->_itemComponent->SetVisibility(true);
+
         _playerController->SetViewTargetWithBlend(_sophia, 0.75f);
         _myGameState->_onBlendTime = 0.75f;
         _playerController->bShowMouseCursor = false;
         _playerController->bEnableClickEvents = false;
-        _playerController->bEnableMouseOverEvents = false;
-
 
         if (UEnhancedInputLocalPlayerSubsystem* subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(_playerController->GetLocalPlayer())) {
             subsystem->RemoveMappingContext(_puzzleMappingContext);
