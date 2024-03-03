@@ -299,7 +299,9 @@ void ASophia::OnAction(const FInputActionValue &value)
 		} else if (IPickUpInterface* pickUpItem = Cast<IPickUpInterface>(_inventory->_currentItemInSight)) {
 			pickUpItem->PickUpItem(_inventory->_currentItemInSight);
 		}
-	}
+	} else if (_inventory->_currentAnimatedItemInSight) {
+		_inventory->_currentAnimatedItemInSight->UseInteraction();
+	} 
 }
 
 void ASophia::DropItem(const FInputActionValue& value)

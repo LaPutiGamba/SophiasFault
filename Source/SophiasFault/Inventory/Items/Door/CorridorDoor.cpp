@@ -15,7 +15,7 @@ void ACorridorDoor::BeginPlay()
 void ACorridorDoor::ControlDoor(float value)
 {
 	_timelineValue = _timelineComponent->GetPlaybackPosition();
-	_curveFloatValue = _bRotateDirection ? _curveFloat->GetFloatValue(_timelineValue) : (- 1.f * _curveFloat->GetFloatValue(_timelineValue));
+	_curveFloatValue = _bRotateDirection ? _selectedCurveFloat->GetFloatValue(_timelineValue) : (- 1.f * _selectedCurveFloat->GetFloatValue(_timelineValue));
 	float newRotation = _curveFloatValue - _rotationApplied;
 	_rotationApplied += newRotation;
 

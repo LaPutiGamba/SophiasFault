@@ -9,7 +9,7 @@ ACloseDoor::ACloseDoor()
 void ACloseDoor::SetState()
 {
 	if (_bClosingDoorAnim) {
-		_curveFloat = _curveFloatTemp;
+		_selectedCurveFloat = _curveFloatTemp;
 		_bReadyState = true;
 		_bClosingDoorAnim = false;
 	} else {
@@ -26,8 +26,8 @@ void ACloseDoor::OnTriggerStart()
 		FTimerHandle doorTimerHandle;
 		GetWorld()->GetTimerManager().SetTimer(doorTimerHandle, [this]() {
 			if (_curveFloatClose) {
-				_curveFloatTemp = _curveFloat;
-				_curveFloat = _curveFloatClose;
+				_curveFloatTemp = _selectedCurveFloat;
+				_selectedCurveFloat = _curveFloatClose;
 				_timelineComponent->PlayFromStart();
 				_bClosingDoorAnim = true;
 

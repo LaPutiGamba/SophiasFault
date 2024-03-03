@@ -81,8 +81,7 @@ void ADoorKey::OnAction()
 						}, _metaSound->GetDuration(), false);
 				}
 			} else {
-				if (!door->_bDoorLocked) 
-					door->UseInteraction();
+				door->UseInteraction();
 			}
 		}
 	}

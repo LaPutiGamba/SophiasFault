@@ -48,7 +48,6 @@ void ACameraBlend::BlendBack()
         _playerController->SetViewTargetWithBlend(_sophia, 0.75f);
         _myGameState->_onBlendTime = 0.75f;
         _playerController->bShowMouseCursor = false;
-        _playerController->bEnableClickEvents = false;
 
         if (UEnhancedInputLocalPlayerSubsystem* subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(_playerController->GetLocalPlayer())) {
             subsystem->RemoveMappingContext(_puzzleMappingContext);

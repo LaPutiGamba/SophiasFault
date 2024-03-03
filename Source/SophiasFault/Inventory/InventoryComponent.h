@@ -43,6 +43,7 @@ public:
 
 	class AItem* _currentHandItem;
 	class AItem* _currentItemInSight;
+	class IInteractiveInterface* _currentAnimatedItemInSight;
 	class AActor* _currentChangeCameraItem;
 
 	bool _bHoldingItem;
@@ -51,7 +52,7 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float deltaTime, enum ELevelTick tickType, FActorComponentTickFunction* thisTickFunction) override;
-	bool AddItem(class AItem* item);
+	bool AddItem(class AItem* item, bool toggleHoldingItem = true);
 	bool RemoveItem(class AItem* item, bool deleteCurrentHandItem = true);
 
 	void SetCurrentHandItem(class AItem* item) { _currentHandItem = item; };

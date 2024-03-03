@@ -1,6 +1,7 @@
 #include "Door.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
+#include "Curves/CurveFloat.h"
 #include "../../../Sophia.h"
 #include "../../../Macros.h"
 
@@ -9,17 +10,19 @@ ADoor::ADoor()
 	_bOpenState = false;
 	_bReadyState = true;
 	_bDoorLocked = true;
+
+	_doorHandle = nullptr;
 }
 
 void ADoor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (_curveFloat) {
+	if (_selectedCurveFloat) {
 		_timelineCallback.BindUFunction(this, FName("ControlDoor"));
 		_timelineFinishedCallback.BindUFunction(this, FName("SetState"));
 
-		_timelineComponent->AddInterpFloat(_curveFloat, _timelineCallback);
+		_timelineComponent->AddInterpFloat(_selectedCurveFloat, _timelineCallback);
 		_timelineComponent->SetTimelineFinishedFunc(_timelineFinishedCallback);
 	}
 
@@ -35,11 +38,11 @@ void ADoor::BeginPlay()
 void ADoor::ControlDoor(float value)
 {
 	_timelineValue = _timelineComponent->GetPlaybackPosition();
-	_curveFloatValue = _bRotateDirection ? _curveFloat->GetFloatValue(_timelineValue) : (- 1.f * _curveFloat->GetFloatValue(_timelineValue));
+	_curveFloatValue = _bRotateDirection ? _selectedCurveFloat->GetFloatValue(_timelineValue) : (- 1.f * _selectedCurveFloat->GetFloatValue(_timelineValue));
 	float newRotation = _curveFloatValue - _rotationApplied;
 	_rotationApplied += newRotation;
 
-	AddActorLocalRotation(FRotator(0.f, newRotation, 0.f));
+	_meshComponent->AddLocalRotation(FRotator(0.f, newRotation, 0.f));
 }
 
 void ADoor::SetState()
@@ -52,12 +55,26 @@ void ADoor::UseInteraction()
 	if (!_bDoorLocked && _bReadyState) {
 		_bOpenState = !_bOpenState;
 
+		_selectedCurveFloat = _openCurveFloat;
+
 		if (_bOpenState) {
 			_bReadyState = false;
-			_timelineComponent->PlayFromStart();
+			if (_doorHandle != nullptr) {
+				_doorHandle->UseInteraction();
 
-			_soundComponent->SetIntParameter("Door State", 0);
-			_soundComponent->Play();
+				FTimerHandle timerHandle;
+				GetWorld()->GetTimerManager().SetTimer(timerHandle, [this]() {
+					_timelineComponent->PlayFromStart();
+
+					_soundComponent->SetIntParameter("Door State", 0);
+					_soundComponent->Play();
+					}, _doorHandle->_animationSequence->GetPlayLength() / 2, false);
+			} else {
+				_timelineComponent->PlayFromStart();
+
+				_soundComponent->SetIntParameter("Door State", 0);
+				_soundComponent->Play();
+			}
 		} else {
 			_bReadyState = false;
 			_timelineComponent->Reverse();
@@ -67,8 +84,28 @@ void ADoor::UseInteraction()
 		}
 	}
 
-	if (_bDoorLocked && !_soundComponent->IsPlaying()) {
-		_soundComponent->SetIntParameter("Door State", 2);
-		_soundComponent->Play();
+	if (_bDoorLocked && !_soundComponent->IsPlaying() && _bReadyState) {
+		_bReadyState = false;
+
+		if (_doorHandle != nullptr) {
+			_doorHandle->UseInteraction();
+
+			_selectedCurveFloat = _lockedCurveFloat;
+
+			FTimerHandle timerHandle;
+			GetWorld()->GetTimerManager().SetTimer(timerHandle, [this]() {
+				_timelineComponent->PlayFromStart();
+
+				_soundComponent->SetIntParameter("Door State", 2);
+				_soundComponent->Play();
+				}, _doorHandle->_animationSequence->GetPlayLength() / 2, false);
+		} else {
+			_selectedCurveFloat = _lockedCurveFloat;
+
+			_timelineComponent->PlayFromStart();
+
+			_soundComponent->SetIntParameter("Door State", 2);
+			_soundComponent->Play();
+		}
 	}
 }

@@ -21,9 +21,14 @@ void IPickUpInterface::PickUpItem(AItem* item)
 		item->_itemComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 		item->_itemComponent->SetStaticMesh(item->_meshComponent->GetStaticMesh());
+		item->_itemComponent->SetRelativeRotation(item->_pickUpRotation);
+		item->_itemComponent->SetRelativeLocation(item->_pickUpLocation);
 	}
 
-	item->_owningInventory->AddItem(item);
+	if (item->_owningInventory->_currentHandItem)
+		item->_owningInventory->AddItem(item, false);
+	else 
+		item->_owningInventory->AddItem(item);
 }
 
 void IPickUpInterface::DropItem(AItem* item)

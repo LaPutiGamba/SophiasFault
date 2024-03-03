@@ -15,7 +15,7 @@ class SOPHIASFAULT_API AFlashlight : public AItem, public FTickableGameObject, p
 	GENERATED_BODY()
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement/View variables", meta = (ClampMin = "0.01", ClampMax = "360"))
+	UPROPERTY(EditAnywhere, Category = "Movement/View variables", meta = (ClampMin = "0.01", ClampMax = "360"))
 	float _flashlightMaxDuration;
 
 	class USpotLightComponent* _flashlight;
@@ -23,6 +23,11 @@ protected:
 	bool _rechargingFlashlight;
 	float _flashlightTimer;
 	FLASHLIGHT_STATE _flashlightState;
+	FTimerHandle _intensityTimer;
+	UPROPERTY(EditAnywhere, Category = "Materials")
+	UMaterial* _flashlightMaterial;
+	UPROPERTY(EditAnywhere, Category = "Materials")
+	UMaterial* _flickerMaterial;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* _flashlightAction;

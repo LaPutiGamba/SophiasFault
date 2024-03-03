@@ -12,7 +12,6 @@
 #include "Blueprint/UserWidget.h"
 #include "../Sophia.h"
 #include "../Macros.h"
-#include "DrawDebugHelpers.h"
 
 UInventoryComponent::UInventoryComponent()
 {
@@ -24,7 +23,8 @@ UInventoryComponent::UInventoryComponent()
     _bInspectingPressed = false;
 
 	_currentItemSlotIndex = 0;
-	_currentItemInSight = nullptr;
+    _currentItemInSight = nullptr;
+    _currentAnimatedItemInSight = nullptr;
 	_currentChangeCameraItem = nullptr;
 	_currentHandItem = nullptr;
 	_cameraComponent = nullptr;
@@ -80,6 +80,7 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
             _hit.GetActor()->GetClass()->ImplementsInterface(UPickUpInterface::StaticClass()) ||
             _hit.GetActor()->GetClass()->ImplementsInterface(UOnActionInterface::StaticClass())) {
             _currentItemInSight = Cast<AItem>(_hit.GetActor());
+            _currentAnimatedItemInSight = Cast<IInteractiveInterface>(_hit.GetActor());
 
             if (_myGameState->_hudWidget != nullptr) {
                 _myGameState->_hudWidget->GetWidgetFromName("NoVisibleItem")->SetVisibility(ESlateVisibility::Hidden);
@@ -157,7 +158,7 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
     }
 }
 
-bool UInventoryComponent::AddItem(AItem* item)
+bool UInventoryComponent::AddItem(AItem* item, bool toggleHoldingItem)
 {
 	for (int i = 0; i < _capacity; i++) {
 		if (_items[i] == nullptr) {
@@ -168,7 +169,9 @@ bool UInventoryComponent::AddItem(AItem* item)
 		
 	_onInventoryUpdated.Broadcast();
 
-    _bHoldingItem = !_bHoldingItem;
+    if (toggleHoldingItem)
+		_bHoldingItem = !_bHoldingItem;
+    
     _currentHandItem = item;
 
 	return true;
@@ -205,7 +208,7 @@ void UInventoryComponent::ChangeCurrentHandItem(const FInputActionValue& value, 
         if (_currentHandItem->_bNoSwitchableItem) return;
 
     // Hide the actual item in the _inventory and in the hand
-    if (_items[_currentItemSlotIndex] != nullptr) {
+    if (_items[_currentItemSlotIndex] != nullptr && _currentHandItem != nullptr) {
         _items[_currentItemSlotIndex]->SetActorHiddenInGame(true);
         _currentHandItem->SetActorHiddenInGame(true);
         _holdingComponent->SetStaticMesh(nullptr);

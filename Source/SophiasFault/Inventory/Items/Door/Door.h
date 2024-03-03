@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "../../Item.h"
 #include "DoorKey.h"
+#include "../SimpleAnimatedItem.h"
 #include "../../../Interfaces/InteractiveInterface.h"
 #include "Door.generated.h"
 
@@ -19,8 +20,15 @@ public:
 
 	class ASophia* _sophiaCharacter;
 
+	UPROPERTY(EditAnywhere, Category = "Door")
+	class ASimpleAnimatedItem* _doorHandle;
+
 	UPROPERTY(EditAnywhere, Category = "Timeline")
-	class UCurveFloat* _curveFloat;
+	class UCurveFloat* _selectedCurveFloat;
+	UPROPERTY(EditAnywhere, Category = "Timeline")
+	class UCurveFloat* _openCurveFloat;
+	UPROPERTY(EditAnywhere, Category = "Timeline")
+	class UCurveFloat* _lockedCurveFloat;
 
 	FOnTimelineFloat _timelineCallback;
 

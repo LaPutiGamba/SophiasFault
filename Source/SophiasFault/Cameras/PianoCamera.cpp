@@ -1,14 +1,13 @@
 #include "PianoCamera.h"
 #include "../Inventory/Items/Piano/PianoKey.h"
 #include "../Inventory/Items/Door/DoorKey.h"
+#include "../Interfaces/PickUpInterface.h"
 #include "Components/AudioComponent.h" 
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/TextBlock.h" 
 #include "../Sophia.h"
 #include "../Macros.h"
-
-#define ECC_Selectable ECC_GameTraceChannel1
 
 APianoCamera::APianoCamera()
 {
@@ -26,11 +25,11 @@ void APianoCamera::UseInteraction()
 
 		_playerController->SetViewTargetWithBlend(this, 0.75f);
 		_myGameState->_onBlendTime = 0.75f;
+		_playerController->SetInputMode(FInputModeGameAndUI());
 
 		FTimerHandle blendCameraHandle;
 		GetWorld()->GetTimerManager().SetTimer(blendCameraHandle, [this]() {
 			_playerController->bShowMouseCursor = true;
-			_playerController->bEnableClickEvents = true;
 
 			_keyHelperWidget = CreateWidget<UUserWidget>(_playerController, _keyHelperWidgetClass);
 			if (_keyHelperWidget != nullptr) {
@@ -54,6 +53,7 @@ void APianoCamera::UseInteraction()
 void APianoCamera::BlendBack()
 {
 	ACameraBlend::BlendBack();
+	_playerController->SetInputMode(FInputModeGameOnly());
 	
 	if (_enhancedInputComponent) {
 		_enhancedInputComponent->RemoveBinding(*_clickInteractiveHandle);
@@ -70,6 +70,8 @@ void APianoCamera::BlendBack()
 
 void APianoCamera::ClickInteractive(const FInputActionValue& value)
 {
+	_playerController->bShowMouseCursor = true;
+
 	FVector2D mousePosition;
 	_playerController->GetMousePosition(mousePosition.X, mousePosition.Y);
 
@@ -77,10 +79,15 @@ void APianoCamera::ClickInteractive(const FInputActionValue& value)
 	_playerController->DeprojectScreenPositionToWorld(mousePosition.X, mousePosition.Y, worldLocation, worldDirection);
 
 	FHitResult _hit;
-	if (GetWorld()->LineTraceSingleByChannel(_hit, worldLocation, worldLocation + worldDirection * 350.f, ECC_Selectable, FCollisionQueryParams::DefaultQueryParam, FCollisionResponseParams::DefaultResponseParam)) {
+	if (GetWorld()->LineTraceSingleByChannel(_hit, worldLocation, worldLocation + worldDirection * 350.f, ECC_Visibility, FCollisionQueryParams::DefaultQueryParam, FCollisionResponseParams::DefaultResponseParam)) {
 		if (_hit.GetActor()->IsA<APianoKey>()) {
 			APianoKey* mesh = Cast<APianoKey>(_hit.GetActor());
 			mesh->UseInteraction();
+		} else if (_hit.GetActor()->IsA<ADoorKey>()) {
+			if (_myGameState->GetPianoPuzzleSolved()) {
+				IPickUpInterface* doorKey = Cast<IPickUpInterface>(_hit.GetActor());
+				doorKey->PickUpItem(Cast<AItem>(_hit.GetActor()));
+			}
 		}
 	}
 }
@@ -124,7 +131,6 @@ void APianoCamera::ActivatePianoSolution()
 		FTimerHandle drawerTimerHandle;
 		GetWorld()->GetTimerManager().SetTimer(drawerTimerHandle, [this]() {
 			_drawer->AddActorLocalOffset(FVector(30.f, 0.f, 0.f));
-			APianoCamera::BlendBack();
 		}, 10.f, false);
 	}
 }

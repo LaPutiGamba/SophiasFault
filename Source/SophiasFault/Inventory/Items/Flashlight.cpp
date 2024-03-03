@@ -1,6 +1,7 @@
 #include "Flashlight.h"
 #include "Components/SpotLightComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Materials/MaterialInstance.h" 
 #include "../../Sophia.h"
 #include "../../Core/GMS_MyGameStateBase.h"
 #include "../../Macros.h"
@@ -18,16 +19,16 @@ AFlashlight::AFlashlight()
 
 void AFlashlight::BeginPlay()
 {
-	Super::BeginPlay();
+    Super::BeginPlay();
 
-	_playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+    _playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
-	_flashlight = Cast<ASophia>(_playerController->GetPawn())->GetFlashlightComponent();
-	_flashlight->SetRelativeLocation(FVector(0.f, 5.f, 0.f));
-	_flashlight->SetRelativeRotation(FRotator(0.f, 90.f, 0.f));
+    _flashlight = Cast<ASophia>(_playerController->GetPawn())->GetFlashlightComponent();
+    _flashlight->SetRelativeLocation(FVector(0.f, 5.f, 0.f));
+    _flashlight->SetRelativeRotation(FRotator(0.f, 90.f, 0.f));
 
-	if (_flashlight != nullptr)
-		_flashlight->ToggleVisibility(false);
+    if (_flashlight != nullptr)
+        _flashlight->ToggleVisibility(false);
 }
 
 void AFlashlight::Tick(float deltaTime)
@@ -39,13 +40,20 @@ void AFlashlight::Tick(float deltaTime)
 		if (_flashlight != nullptr)
 			_flashlight->SetVisibility(true);
 
-		if (_flashlightTimer < _flashlightMaxDuration)
+		if (_flashlightTimer < _flashlightMaxDuration && _flashlight->Intensity > 250.f) {
 			_flashlightTimer += deltaTime;
-		else
+		} else {
 			_flashlightState = ST_NEEDRECHARGE;
+			_intensityTimer.Invalidate();
+		}
 
-		if (!_flashlightOn)
+		if (!_flashlightOn) {
 			_flashlightState = ST_LIGHTOFF;
+			_intensityTimer.Invalidate();
+		}
+
+		if (_flashlight->Intensity < 1000.f)
+			_flashlight->SetLightFunctionMaterial(_flickerMaterial);
 
 		_rechargingFlashlight = false;
 		break;
@@ -53,11 +61,15 @@ void AFlashlight::Tick(float deltaTime)
 		if (_flashlight != nullptr)
 			_flashlight->SetVisibility(false);
 
-		if (_flashlightTimer > 0.f)
-			_flashlightTimer -= deltaTime;
-
-		if (_flashlightOn)
+		if (_flashlightOn) {
 			_flashlightState = ST_LIGHTON;
+			_flashlightTimer = 0.f;
+			_flashlight->SetLightFunctionMaterial(_flashlightMaterial);
+
+			GetWorld()->GetTimerManager().SetTimer(_intensityTimer, [this]() {
+				_flashlight->SetIntensity(_flashlight->Intensity - 11.f);
+			}, 0.2f, true);
+		}
 		break;
 	case ST_NEEDRECHARGE:
 		_flashlightTimer = 0.f;
@@ -66,10 +78,18 @@ void AFlashlight::Tick(float deltaTime)
 			_flashlight->SetVisibility(false);
 
 		if (_rechargingFlashlight) {
-			if (_flashlightOn)
+			if (_flashlightOn) {
 				_flashlightState = ST_LIGHTON;
-			else
+				_flashlight->SetLightFunctionMaterial(_flashlightMaterial);
+
+				GetWorld()->GetTimerManager().SetTimer(_intensityTimer, [this]() {
+					_flashlight->SetIntensity(_flashlight->Intensity - 11.f);
+				}, 0.2f, true);
+			} else {
 				_flashlightState = ST_LIGHTOFF;
+			}
+
+			_flashlight->SetIntensity(10000);
 		}
 		break;
 	default:

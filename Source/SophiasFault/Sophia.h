@@ -30,10 +30,6 @@ protected:
 	/* --------------------------------------- */
 
 
-	/* ----- Materials ----- */
-	/* --------------------- */
-
-
 	/* ------ Camera ------ */
 	UPROPERTY(EditAnywhere, Category = "Camera")
 	class USpringArmComponent* _springArmComponent;
