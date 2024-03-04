@@ -3,6 +3,7 @@
 #include "Blueprint/UserWidget.h" 
 #include "Components/TextBlock.h" 
 #include "Kismet/GameplayStatics.h"
+#include "GameFramework/PlayerController.h" 
 
 ANotes::ANotes()
 {
