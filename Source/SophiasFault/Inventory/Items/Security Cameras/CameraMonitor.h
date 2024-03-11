@@ -1,12 +1,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "../../Item.h"
 #include "../../../Interfaces/ActorBlendInterface.h"
 #include "CameraMonitor.generated.h"
 
 UCLASS()
-class SOPHIASFAULT_API ACameraMonitor : public AActor, public IActorBlendInterface
+class SOPHIASFAULT_API ACameraMonitor : public AItem, public IActorBlendInterface
 {
 	GENERATED_BODY()
 	
@@ -16,9 +16,6 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Blend", meta = (DisplayPriority = "1"))
 	FName _cameraTag;
-
-	UPROPERTY(EditAnywhere, Category = "Mesh")
-	class UStaticMeshComponent* _meshComponent;
 
 	UPROPERTY(EditAnywhere, Category = "Camera Monitor")
 	TArray<AActor*> _cameras;
@@ -32,12 +29,6 @@ public:
 	int _screenWidth, _screenHeight;
 	int _currentCameraIndex;
 	APlayerController* _playerController;
-
-	// AUDIO
-	UPROPERTY(EditAnywhere, Category = "Audio")
-	class USoundBase* _metaSound;
-
-	class UAudioComponent* _soundComponent;
 
 	void ChangeSecurityCamera();
 };

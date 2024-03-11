@@ -30,8 +30,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UUserWidget* _hudWidget;
+	class UUserWidget* _dialogueWidget;
 
 	TSubclassOf<class UUserWidget> _hudWidgetClass;
+	TSubclassOf<class UUserWidget> _dialogueWidgetClass;
 
 	// AI functions
 	void SetOnChase(bool value) { _bOnChase = value; }

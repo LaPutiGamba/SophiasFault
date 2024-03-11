@@ -12,6 +12,8 @@ ADoor::ADoor()
 	_bDoorLocked = true;
 
 	_doorHandle = nullptr;
+
+	_timelineComponent = CreateDefaultSubobject<UTimelineComponent>(TEXT("Timeline Component"));
 }
 
 void ADoor::BeginPlay()
@@ -42,7 +44,7 @@ void ADoor::ControlDoor(float value)
 	float newRotation = _curveFloatValue - _rotationApplied;
 	_rotationApplied += newRotation;
 
-	_meshComponent->AddLocalRotation(FRotator(0.f, newRotation, 0.f));
+	_skeletalMeshComponent->AddLocalRotation(FRotator(0.f, newRotation, 0.f));
 }
 
 void ADoor::SetState()

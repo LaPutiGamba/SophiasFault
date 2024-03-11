@@ -25,8 +25,8 @@ void ANotes::BeginPlay()
 
 	_playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
-	if (_noteWidgetClass) {
-		if ((_noteWidget = CreateWidget<UUserWidget>(GetWorld(), _noteWidgetClass)) != nullptr) {
+	if (_noteWidgetClass && _playerController) {
+		if ((_noteWidget = CreateWidget<UUserWidget>(_playerController, _noteWidgetClass)) != nullptr) {
 			if (UTextBlock* noteTextBlock = Cast<UTextBlock>(_noteWidget->GetWidgetFromName("NoteText")))
 				noteTextBlock->SetText(_noteText);
 		}
@@ -35,17 +35,15 @@ void ANotes::BeginPlay()
 
 void ANotes::OnAction()
 {
-	if (_noteWidget) {
+	if (_noteWidget && _owningInventory->_bInspecting) {
 		if (!_noteWidget->IsInViewport()) {
 			_bNoSwitchableItem = true;
-			_owningInventory->_bInspecting = true;
 			_playerController->SetInputMode(FInputModeGameAndUI());
 			_noteWidget->AddToViewport();
 			_playerController->SetIgnoreLookInput(true);
 			_playerController->SetIgnoreMoveInput(true);
 		} else {
 			_bNoSwitchableItem = false;
-			_owningInventory->_bInspecting = false;
 			_noteWidget->RemoveFromParent();
 			_playerController->SetInputMode(FInputModeGameOnly());
 			_playerController->bShowMouseCursor = false;

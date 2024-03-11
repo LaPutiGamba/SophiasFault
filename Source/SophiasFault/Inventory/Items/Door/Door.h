@@ -1,7 +1,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "../../Item.h"
 #include "DoorKey.h"
 #include "../SimpleAnimatedItem.h"
 #include "../../../Interfaces/InteractiveInterface.h"
@@ -11,7 +10,7 @@
  * 
  */
 UCLASS()
-class SOPHIASFAULT_API ADoor : public AItem, public IInteractiveInterface
+class SOPHIASFAULT_API ADoor : public AAnimatedItem, public IInteractiveInterface
 {
 	GENERATED_BODY()
 	
@@ -30,6 +29,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Timeline")
 	class UCurveFloat* _lockedCurveFloat;
 
+	class UTimelineComponent* _timelineComponent;
+
+	FOnTimelineEvent _timelineFinishedCallback;
 	FOnTimelineFloat _timelineCallback;
 
 	bool _bReadyState;

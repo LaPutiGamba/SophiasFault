@@ -9,15 +9,8 @@
 
 ACameraMonitor::ACameraMonitor()
 {
-	_meshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-
 	_cameraMaterialRef = nullptr;
 	_screenBrightness = 0.5f;
-
-	_soundComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("Sound Component"));
-	_soundComponent->bAutoActivate = false;
-	_soundComponent->SetupAttachment(RootComponent);
-	_soundComponent->SetRelativeLocation(FVector(0.f, 0.0f, 0.0f));
 }
 
 void ACameraMonitor::BeginPlay()

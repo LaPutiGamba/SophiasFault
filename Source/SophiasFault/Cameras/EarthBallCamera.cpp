@@ -4,6 +4,8 @@
 #include "../Inventory/Items/Earth/EarthContinent.h"
 #include "../Interfaces/ActorBlendInterface.h"
 #include "../Interfaces/InteractiveInterface.h"
+#include "../Inventory/Items/BasicBlendActor.h"
+#include "Components/BoxComponent.h"
 #include "EnhancedInputComponent.h"
 #include "../Macros.h"
 
@@ -16,17 +18,8 @@ AEarthBallCamera::AEarthBallCamera()
 
 void AEarthBallCamera::UseInteraction()
 {
-	if (_myGameState->_onBlendTime <= 0.001f) {
+	if (_myGameState->_onBlendTime <= 0.001f && !_bPuzzleSolved) {
 		ACameraBlend::UseInteraction();
-
-		// Calculate the location and direction of the camera to center the sphere.
-		FVector playerViewDirection = _playerController->GetControlRotation().Vector();
-		float distanceBehindSphere = 220.0f;
-		FVector newCameraPosition = _earthBallLocation - (playerViewDirection * distanceBehindSphere);
-		SetActorLocation(newCameraPosition);
-		FVector LookAtDirection = (_earthBallLocation - GetActorLocation()).GetSafeNormal();
-		FRotator NewCameraRotation = LookAtDirection.Rotation();
-		SetActorRotation(NewCameraRotation);
 
 		// Blend of the character camera to the Earth Ball camera.
 		_playerController->SetViewTargetWithBlend(this, 0.75f);
@@ -34,6 +27,12 @@ void AEarthBallCamera::UseInteraction()
 		_playerController->bShowMouseCursor = true;
 		_playerController->bEnableClickEvents = true;
 		_playerController->bEnableMouseOverEvents = true;
+
+		UActorComponent* boxComponent;
+		if (_basicBlendActor) {
+			if ((boxComponent = _basicBlendActor->GetComponentByClass(UBoxComponent::StaticClass())) != nullptr)
+				Cast<UBoxComponent>(boxComponent)->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		}
 
 		if (_enhancedInputComponent) {
 			_getUpHandle = &_enhancedInputComponent->BindAction(_getUpAction, ETriggerEvent::Triggered, this, &AEarthBallCamera::BlendBack);
@@ -55,26 +54,28 @@ void AEarthBallCamera::BlendBack()
 	FVector2D screenPosition;
 	FVector worldLocation;
 	_playerController->ProjectWorldLocationToScreen(worldLocation, screenPosition);
+
+	UActorComponent* boxComponent;
+	if (_basicBlendActor) {
+		if ((boxComponent = _basicBlendActor->GetComponentByClass(UBoxComponent::StaticClass())) != nullptr)
+			Cast<UBoxComponent>(boxComponent)->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	}
 }
 
 void AEarthBallCamera::EarthRotation(const FInputActionValue& value)
 {
-	FVector2D mousePosition;
-	_playerController->GetMousePosition(mousePosition.X, mousePosition.Y);
-	FVector2D screenSize;
-	GEngine->GameViewport->GetViewportSize(screenSize);
+	if (UInventoryComponent* inventory = Cast<ASophia>(_playerController->GetPawn())->GetInventory()) {
+		if (_basicBlendActor) {
+			FRotator newRotation = _basicBlendActor->GetActorRotation();
 
-	FRotator sendRotator = FRotator::ZeroRotator;
+			if (_playerController->PlayerInput->IsPressed(EKeys::A)) 
+				newRotation.Yaw -= 1.5f;
+			else if (_playerController->PlayerInput->IsPressed(EKeys::D))
+				newRotation.Yaw += 1.5f;
 
-	if (((mousePosition.X - (screenSize.X / 2)) > 30.f || (mousePosition.X - (screenSize.X / 2)) < -30.f) ||
-		((mousePosition.Y - (screenSize.Y / 2)) > 30.f || (mousePosition.Y - (screenSize.Y / 2)) < -30.f)) {
-		sendRotator.Yaw = -((mousePosition.X - (screenSize.X / 2)) / screenSize.X) * 1.25f;
-		sendRotator.Pitch = ((mousePosition.Y - (screenSize.Y / 2)) / screenSize.Y) * 1.25f;
+			_basicBlendActor->SetActorRotation(newRotation);
+		}
 	}
-
-	if (UInventoryComponent* inventory = Cast<ASophia>(_playerController->GetPawn())->GetInventory())
-		if (inventory->_currentChangeCameraItem != nullptr)
-			inventory->_currentChangeCameraItem->SetActorRelativeRotation(inventory->_currentChangeCameraItem->GetActorRotation() + sendRotator);
 }
 
 void AEarthBallCamera::ClickInteractive(const FInputActionValue& value)
@@ -88,8 +89,8 @@ void AEarthBallCamera::ClickInteractive(const FInputActionValue& value)
 	FHitResult _hit;
 	if (GetWorld()->LineTraceSingleByChannel(_hit, worldLocation, worldLocation + worldDirection * 350.f, ECC_Selectable, FCollisionQueryParams::DefaultQueryParam, FCollisionResponseParams::DefaultResponseParam)) {
 		if (_hit.GetActor()->IsA<AEarthContinent>()) {
-			IInteractiveInterface* mesh = Cast<IInteractiveInterface>(_hit.GetActor());
-			mesh->UseInteraction();
+			AEarthContinent* mesh = Cast<AEarthContinent>(_hit.GetActor());
+			mesh->AddOrRemoveContinent();
 		}
 	}
 }

@@ -27,8 +27,6 @@ public:
 	float _timelineValue;
 	float _curveFloatValue;
 
-	TSubclassOf<class UUserWidget> _dialogueWidgetClass;
-
 	virtual void BeginPlay() override;
 
 	UFUNCTION()

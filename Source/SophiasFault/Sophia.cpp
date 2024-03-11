@@ -26,6 +26,8 @@ ASophia::ASophia()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	_sanity = 100;
+
 	// Init of GAMESTATE variable
 	_myGameState = GetWorld() != nullptr ? GetWorld()->GetGameState<AGMS_MyGameStateBase>() : nullptr;
 
@@ -99,11 +101,11 @@ void ASophia::Tick(float deltaTime)
 
 	// STAMINA
 	switch (_staminaStatus) {
-		/*
-			If the player is running, depending if it's on chase or not, will increase or decrease her speed. That will simulate
-			the player running or like crouching. Also, it has a maximum amount of time to run or crouch, so it will increase
-			the _staminaTimer and if it reach the max, it will change to the EXHAUSTED status.
-		*/
+	/*
+		If the player is running, depending if it's on chase or not, will increase or decrease her speed. That will simulate
+		the player running or like crouching. Also, it has a maximum amount of time to run or crouch, so it will increase
+		the _staminaTimer and if it reach the max, it will change to the EXHAUSTED status.
+	*/
 	case ST_RUNNING:
 		if (_bRunningOrCrouching) {
 			if (_myGameState->GetOnChase()) {
@@ -129,11 +131,11 @@ void ASophia::Tick(float deltaTime)
 				_staminaStatus = ST_IDLE;
 		}
 		break;
-		/*
-			If the player is exhausted, it will start decreasing the _staminaTimer. If it reach half of the maximum stamina,
-			and the player still pressing the running or crouching button, it will start running again until the half of the
-			max stamina it's spent. If the person doesn't press the running or crouching button, it will change to IDLE status.
-		*/
+	/*
+		If the player is exhausted, it will start decreasing the _staminaTimer. If it reach half of the maximum stamina,
+		and the player still pressing the running or crouching button, it will start running again until the half of the
+		max stamina it's spent. If the person doesn't press the running or crouching button, it will change to IDLE status.
+	*/
 	case ST_EXHAUSTED:
 		if (_bRunningOrCrouching && _staminaTimer < (_staminaMax / 2))
 			_staminaStatus = ST_RUNNING;
@@ -151,9 +153,9 @@ void ASophia::Tick(float deltaTime)
 		if (_staminaTimer < 0.f && !_bRunningOrCrouching)
 			_staminaStatus = ST_IDLE;
 		break;
-		/*
-			If the player it's on the IDLE status, it the running or crouching button is pressed it will change to RUNNING status.
-		*/
+	/*
+		If the player it's on the IDLE status, it the running or crouching button is pressed it will change to RUNNING status.
+	*/
 	case ST_IDLE:
 		if (!_myGameState->GetOnChase()) 
 			_springArmComponent->SetRelativeLocation(_cameraLocation);

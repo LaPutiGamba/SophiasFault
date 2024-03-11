@@ -16,6 +16,8 @@ class SOPHIASFAULT_API ASophia : public ACharacter
 protected:
 	/* ----- Global variables ----- */
 	APlayerController* _playerController;
+
+	int _sanity;
 	/* ---------------------------- */
 
 

@@ -23,6 +23,13 @@ void IPickUpInterface::PickUpItem(AItem* item)
 		item->_itemComponent->SetStaticMesh(item->_meshComponent->GetStaticMesh());
 		item->_itemComponent->SetRelativeRotation(item->_pickUpRotation);
 		item->_itemComponent->SetRelativeLocation(item->_pickUpLocation);
+
+		for (int i = 0; i < item->_itemComponent->GetNumChildrenComponents(); i++) {
+			if (UBoxComponent* boxCollision = Cast<UBoxComponent>(item->_itemComponent->GetChildComponent(i))) {
+				boxCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				break;
+			}
+		}
 	}
 
 	if (item->_owningInventory->_currentHandItem)
@@ -45,6 +52,13 @@ void IPickUpInterface::DropItem(AItem* item)
 
 	FVector forwardVector = item->_playerCamera->GetForwardVector();
 	item->_meshComponent->AddForce(forwardVector * 40000 * item->_meshComponent->GetMass());
+
+	for (int i = 0; i < item->_itemComponent->GetNumChildrenComponents(); i++) {
+		if (UBoxComponent* boxCollision = Cast<UBoxComponent>(item->_itemComponent->GetChildComponent(i))) {
+			boxCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			break;
+		}
+	}
 
 	item->_owningInventory->RemoveItem(item);
 }

@@ -10,6 +10,7 @@ ACameraBlend::ACameraBlend()
 	_playerController = nullptr;
 	_myGameState = nullptr;
 	_enhancedInputComponent = nullptr;
+	_bPuzzleSolved = false;
 }
 
 void ACameraBlend::BeginPlay()

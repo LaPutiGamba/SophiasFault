@@ -4,6 +4,7 @@
 #include "Items/Mirror Light/MirrorLight.h"
 #include "Items/Stair.h"
 #include "Items/Flashlight.h"
+#include "AnimatedItem.h"
 #include "../Interfaces/InteractiveInterface.h"
 #include "../Interfaces/PickUpInterface.h"
 #include "../Interfaces/OnActionInterface.h"
@@ -68,6 +69,8 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
     if (GetWorld()->LineTraceSingleByChannel(_hit, _start, _end, ECC_Visibility, FComponentQueryParams::DefaultQueryParam, FCollisionResponseParams::DefaultResponseParam)) {
         // If the player has in sight a Current Change Camera Item saves a pointer to that Actor.
         if (_hit.GetActor()->GetClass()->ImplementsInterface(UActorBlendInterface::StaticClass())) {
+            //if (_currentChangeCameraItem)
+            //    Cast<AItem>(_currentChangeCameraItem)->_meshComponent->SetRenderCustomDepth(false);
             _currentChangeCameraItem = _hit.GetActor();
 
             if (_myGameState->_hudWidget != nullptr) {
@@ -75,10 +78,14 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
                 _myGameState->_hudWidget->GetWidgetFromName("VisibleItem")->SetVisibility(ESlateVisibility::Visible);
             }
 
-            // If the player has in sight an Item saves a pointer to that Actor.
+        // If the player has in sight an Item saves a pointer to that Actor.
         } else if (_hit.GetActor()->GetClass()->ImplementsInterface(UInteractiveInterface::StaticClass()) ||
             _hit.GetActor()->GetClass()->ImplementsInterface(UPickUpInterface::StaticClass()) ||
             _hit.GetActor()->GetClass()->ImplementsInterface(UOnActionInterface::StaticClass())) {
+            //if (_currentItemInSight)
+            // _currentItemInSight->_meshComponent->SetRenderCustomDepth(false);
+            //if (_currentAnimatedItemInSight)
+            //    Cast<AAnimatedItem>(_currentAnimatedItemInSight)->_skeletalMeshComponent->SetRenderCustomDepth(false);
             _currentItemInSight = Cast<AItem>(_hit.GetActor());
             _currentAnimatedItemInSight = Cast<IInteractiveInterface>(_hit.GetActor());
 
@@ -87,20 +94,43 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
                 _myGameState->_hudWidget->GetWidgetFromName("VisibleItem")->SetVisibility(ESlateVisibility::Visible);
             }
 
-            // If the player doesn't has in sight any item, all the items are null.
+        // If the player doesn't has in sight any item, all the items are null.
         } else {
+            //if (_currentItemInSight)
+            //    _currentItemInSight->_meshComponent->SetRenderCustomDepth(false);
+            //if (_currentAnimatedItemInSight)
+            //    Cast<AAnimatedItem>(_currentAnimatedItemInSight)->_skeletalMeshComponent->SetRenderCustomDepth(false);
+            //if (_currentChangeCameraItem)
+            //    Cast<AItem>(_currentChangeCameraItem)->_meshComponent->SetRenderCustomDepth(false);
+
             _currentChangeCameraItem = nullptr;
             _currentItemInSight = nullptr;
+            _currentAnimatedItemInSight = nullptr;
 
             if (_myGameState->_hudWidget != nullptr) {
                 _myGameState->_hudWidget->GetWidgetFromName("NoVisibleItem")->SetVisibility(ESlateVisibility::Visible);
                 _myGameState->_hudWidget->GetWidgetFromName("VisibleItem")->SetVisibility(ESlateVisibility::Hidden);
             }
         }
+
+   //     if (_currentItemInSight)
+   //         _currentItemInSight->_meshComponent->SetRenderCustomDepth(true);
+   //     if (_currentAnimatedItemInSight)
+			//Cast<AAnimatedItem>(_currentAnimatedItemInSight)->_skeletalMeshComponent->SetRenderCustomDepth(true);
+   //     if (_currentChangeCameraItem)
+   //         Cast<AItem>(_currentChangeCameraItem)->_meshComponent->SetRenderCustomDepth(true);
     // If the player doesn't has in sight any item, all the items are null
     } else {
+        //if (_currentItemInSight)
+        //    _currentItemInSight->_meshComponent->SetRenderCustomDepth(false);
+        //if (_currentAnimatedItemInSight)
+        //    Cast<AAnimatedItem>(_currentAnimatedItemInSight)->_skeletalMeshComponent->SetRenderCustomDepth(false);
+        //if (_currentChangeCameraItem)
+        //    Cast<AItem>(_currentChangeCameraItem)->_meshComponent->SetRenderCustomDepth(false);
+
         _currentChangeCameraItem = nullptr;
         _currentItemInSight = nullptr;
+        _currentAnimatedItemInSight = nullptr;
 
         if (_myGameState->_hudWidget != nullptr) {
             _myGameState->_hudWidget->GetWidgetFromName("NoVisibleItem")->SetVisibility(ESlateVisibility::Visible);
@@ -142,10 +172,6 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
     }
 
     if (_currentHandItem != nullptr) {
-        if (_currentHandItem->IsA<AFlashlight>()) {
-            
-        }
-
         // NO SWITCHEABLE ITEMS
         if (_currentHandItem->_bNoSwitchableItem) {
             if (AStair* stair = Cast<AStair>(_currentHandItem)) {
@@ -255,6 +281,10 @@ void UInventoryComponent::InspectItem(const FInputActionValue& value)
             if (_bHoldingItem) {
                 _lastRotation = _playerController->GetPawn()->GetControlRotation();
                 Cast<ASophia>(_playerController->GetPawn())->ToggleMovement(_bInspecting);
+                if (_myGameState->_hudWidget != nullptr) {
+                    _myGameState->_hudWidget->RemoveFromParent();
+                    _myGameState->_hudWidget = nullptr;
+                }
             } else {
                 _bInspecting = true;
             }
@@ -264,6 +294,10 @@ void UInventoryComponent::InspectItem(const FInputActionValue& value)
                 _playerController->PlayerCameraManager->ViewPitchMax = _pitchMax;
                 _playerController->PlayerCameraManager->ViewPitchMin = _pitchMin;
                 Cast<ASophia>(_playerController->GetPawn())->ToggleMovement(_bInspecting);
+                if (_myGameState->_hudWidget == nullptr) {
+                    _myGameState->_hudWidget = CreateWidget<UUserWidget>(_playerController, _myGameState->_hudWidgetClass);
+                    _myGameState->_hudWidget->AddToViewport();
+                }
             } else {
                 _bInspecting = false;
             }

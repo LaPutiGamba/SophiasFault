@@ -38,4 +38,5 @@ public:
 	APlayerController* _playerController;
 	class ASophia* _sophia;
 	class AGMS_MyGameStateBase* _myGameState;
+	bool _bPuzzleSolved;
 };
