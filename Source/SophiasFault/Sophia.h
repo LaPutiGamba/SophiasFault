@@ -43,6 +43,13 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement/View variables", meta = (ClampMin = "0.01", ClampMax = "1"))
 	float _cameraVelocity;
+
+	UPROPERTY(EditAnywhere, Category = "Camera")
+	TSubclassOf<class UCameraShakeBase> _shakeIdle;
+	UPROPERTY(EditAnywhere, Category = "Camera")
+	TSubclassOf<class UCameraShakeBase> _shakeWalk;
+	UPROPERTY(EditAnywhere, Category = "Camera")
+	TSubclassOf<class UCameraShakeBase> _shakeRun;
 	/* -------------------- */
 
 

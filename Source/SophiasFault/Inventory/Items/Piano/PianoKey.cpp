@@ -56,20 +56,22 @@ void APianoKey::UseInteraction()
 				_myGameState->GetPianoKeysPressed()->Add(_pianoKeyID);
 			} else {
 				_myGameState->GetPianoKeysPressed()->Reset();
+				
+				if (_myGameState->_dialogueWidget != nullptr && GetWorld() != nullptr) {
+					if (FMath::RandRange(0, 7) == 0 && !_myGameState->_dialogueWidget->IsInViewport()) {
+						if (UTextBlock* dialogueTextBlock = Cast<UTextBlock>(_myGameState->_dialogueWidget->GetWidgetFromName("DialogueText"))) {
+							FText newText = FText::FromString("This doesn't sound very good, I think I'm doing something wrong...");
+							dialogueTextBlock->SetText(newText);
+						}
 
-                if (FMath::RandRange(0, 7) == 0 && !_myGameState->_dialogueWidget->IsInViewport()) {
-                    if (UTextBlock* dialogueTextBlock = Cast<UTextBlock>(_myGameState->_dialogueWidget->GetWidgetFromName("DialogueText"))) {
-                        FText newText = FText::FromString("This doesn't sound very good, I think I'm doing something wrong...");
-                        dialogueTextBlock->SetText(newText);
-                    }
+						_myGameState->_dialogueWidget->AddToViewport();
 
-					_myGameState->_dialogueWidget->AddToViewport();
-
-					FTimerHandle dialogueTimerHandle;
-                    GetWorld()->GetTimerManager().SetTimer(dialogueTimerHandle, [this]() {
-						_myGameState->_dialogueWidget->RemoveFromParent();
-                    }, 5.0f, false);
-                }
+						FTimerHandle dialogueTimerHandle;
+						GetWorld()->GetTimerManager().SetTimer(dialogueTimerHandle, [this]() {
+							_myGameState->_dialogueWidget->RemoveFromParent();
+							}, 5.0f, false);
+					}
+				}
 			}
 
 			if (_myGameState->GetPianoKeysPressed()->Num() == 9) {

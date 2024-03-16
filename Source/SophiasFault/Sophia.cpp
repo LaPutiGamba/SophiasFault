@@ -18,6 +18,8 @@
 #include "Camera/CameraComponent.h"
 #include "Components/SpotLightComponent.h" 
 #include "Blueprint/UserWidget.h"
+#include "GameFramework/CharacterMovementComponent.h" 
+#include "Camera/CameraShakeBase.h"
 #include "Kismet/GameplayStatics.h"
 
 #define ECC_Selectable ECC_GameTraceChannel1
@@ -109,21 +111,21 @@ void ASophia::Tick(float deltaTime)
 	case ST_RUNNING:
 		if (_bRunningOrCrouching) {
 			if (_myGameState->GetOnChase()) {
-				_speed = 1.f;
+				_speed = .6f;
 
 				if (_staminaTimer < _staminaMax) {
 					_staminaTimer += deltaTime;
 				} else {
 					_staminaStatus = ST_EXHAUSTED;
-					_speed = 0.5f;
+					_speed = 0.3f;
 				}
 			} else {
-				_speed = 0.25f;
+				_speed = 0.15f;
 				_springArmComponent->SetRelativeLocation(FVector(_cameraLocation.X, _cameraLocation.Y, (_cameraLocation.Z - 40.f)));
 			}
 		} else {
 			_staminaStatus = ST_IDLE;
-			_speed = 0.5f;
+			_speed = 0.3f;
 		}
 
 		if (_inventory->_currentHandItem) {
@@ -162,11 +164,11 @@ void ASophia::Tick(float deltaTime)
 
 		if (_inventory->_currentHandItem) {
 			if (_inventory->_currentHandItem->_bNoSwitchableItem)
-				_speed = 0.375f;
+				_speed = 0.2f;
 			else
-				_speed = 0.5f;
+				_speed = 0.3f;
 		} else {
-			_speed = 0.5f;
+			_speed = 0.3f;
 		}
 
 		if (_inventory->_currentHandItem) {
@@ -179,6 +181,14 @@ void ASophia::Tick(float deltaTime)
 	default:
 		break;
 	}
+
+	// CAMERA SHAKE
+	if (GetVelocity().SizeSquared() <= 0.1f)
+		_playerController->ClientStartCameraShake(_shakeIdle, 1.f);
+	else if (_speed == 0.3f) 
+		_playerController->ClientStartCameraShake(_shakeWalk, 1.f);
+	else if (_speed == 0.6f) 
+		_playerController->ClientStartCameraShake(_shakeRun, 1.f);
 
 	// Blend time of the camera (ASohpia::BlendWithCamera)
 	if (_myGameState->_onBlendTime > 0.001f)
