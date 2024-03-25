@@ -23,5 +23,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Gramophone")
 	class AItem* thirdShape;
 
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	virtual void UseInteraction() override;
 };

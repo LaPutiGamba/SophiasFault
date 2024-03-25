@@ -57,5 +57,6 @@ public:
 	UFUNCTION()
 	virtual void SetState();
 
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	virtual void UseInteraction() override;
 };

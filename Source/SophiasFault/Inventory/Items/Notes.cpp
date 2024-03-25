@@ -4,6 +4,7 @@
 #include "Components/TextBlock.h" 
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerController.h" 
+#include "../../Macros.h"
 
 ANotes::ANotes()
 {
@@ -27,15 +28,16 @@ void ANotes::BeginPlay()
 
 	if (_noteWidgetClass && _playerController) {
 		if ((_noteWidget = CreateWidget<UUserWidget>(_playerController, _noteWidgetClass)) != nullptr) {
-			if (UTextBlock* noteTextBlock = Cast<UTextBlock>(_noteWidget->GetWidgetFromName("NoteText")))
+			if (UTextBlock* noteTextBlock = Cast<UTextBlock>(_noteWidget->GetWidgetFromName("NoteText"))) {
 				noteTextBlock->SetText(_noteText);
+			}
 		}
 	}
 }
 
 void ANotes::OnAction()
 {
-	if (_noteWidget && _owningInventory->_bInspecting) {
+	if (_noteWidget && _playerController && _owningInventory->_bInspecting) {
 		if (!_noteWidget->IsInViewport()) {
 			_bNoSwitchableItem = true;
 			_playerController->SetInputMode(FInputModeGameAndUI());

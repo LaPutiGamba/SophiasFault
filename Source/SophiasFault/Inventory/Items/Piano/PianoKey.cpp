@@ -69,7 +69,7 @@ void APianoKey::UseInteraction()
 						FTimerHandle dialogueTimerHandle;
 						GetWorld()->GetTimerManager().SetTimer(dialogueTimerHandle, [this]() {
 							_myGameState->_dialogueWidget->RemoveFromParent();
-							}, 5.0f, false);
+						}, 5.0f, false);
 					}
 				}
 			}

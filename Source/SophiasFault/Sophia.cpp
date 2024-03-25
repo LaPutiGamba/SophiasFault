@@ -86,7 +86,7 @@ void ASophia::BeginPlay()
 	_playerController = UGameplayStatics::GetPlayerController(this, 0);
 
 	if (_playerController) {
-		if (UEnhancedInputLocalPlayerSubsystem *Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(_playerController->GetLocalPlayer()))
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(_playerController->GetLocalPlayer()))
 			Subsystem->AddMappingContext(_mainMappingContext, 0);
 	}
 

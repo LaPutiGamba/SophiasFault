@@ -19,5 +19,6 @@ public:
 
 	virtual void BeginPlay() override;
 
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	virtual void UseInteraction() override;
 };

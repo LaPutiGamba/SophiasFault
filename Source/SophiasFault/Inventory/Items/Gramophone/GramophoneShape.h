@@ -16,5 +16,6 @@ class SOPHIASFAULT_API AGramophoneShape : public AItem, public IInteractiveInter
 public:
 	AGramophoneShape();
 
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	virtual void UseInteraction() override;
 };

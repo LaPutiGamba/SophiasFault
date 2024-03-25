@@ -16,5 +16,6 @@ public:
 	UPROPERTY(EditAnywhere)
 	AActor* _deskDrawerActor;
 
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	virtual void UseInteraction() override;
 };

@@ -18,5 +18,6 @@ public:
 	UPROPERTY(EditAnywhere)
 	TArray<class AActor*> _lightActor;
 
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	virtual void UseInteraction() override;
 };
