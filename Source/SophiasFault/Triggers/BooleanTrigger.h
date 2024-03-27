@@ -16,8 +16,11 @@ class SOPHIASFAULT_API ABooleanTrigger : public ATriggerBox
 public:
 	ABooleanTrigger();
 
-	UPROPERTY(EditAnywhere, Category = "Trigger Actors")
+	UPROPERTY(EditAnywhere, Category = "Trigger")
 	TArray<AActor*> _triggerActors;
+
+	UPROPERTY(EditAnywhere, Category = "Trigger")
+	bool _bHasToTriggerOnce;
 	
 	UFUNCTION()
 	void OnOverlapBegin(class AActor* overlappedActor, class AActor* otherActor);

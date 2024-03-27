@@ -7,6 +7,7 @@
 #include "../Cameras/EarthBallCamera.h"
 #include "../Cameras/PianoCamera.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/TextBlock.h" 
 
 AGMS_MyGameStateBase::AGMS_MyGameStateBase()
 {
@@ -42,8 +43,14 @@ void AGMS_MyGameStateBase::BeginPlay()
 
 	_bOnChase = true;
 	
-	if (APlayerController* playerController = GetWorld()->GetFirstPlayerController())
-		_dialogueWidget = CreateWidget<UUserWidget>(playerController, _dialogueWidgetClass);
+	if (APlayerController* playerController = GetWorld()->GetFirstPlayerController()) {
+		if ((_dialogueWidget = CreateWidget<UUserWidget>(playerController, _dialogueWidgetClass)) != nullptr) {
+            _dialogueWidgetText = Cast<UTextBlock>(_dialogueWidget->GetWidgetFromName("DialogueText"));
+
+			if (_dialogueWidgetText != nullptr) 
+				_dialogueWidgetText->SetText(FText::FromString("Hello, Sophia. I'm your father. I'm sorry for what I've done. I've been trying to fix my mistakes. I've left you a series of puzzles to solve. I hope you can forgive me. I love you."));
+		}
+	}
 }
 
 void AGMS_MyGameStateBase::ActivatePianoSolution()

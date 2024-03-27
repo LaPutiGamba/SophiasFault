@@ -22,6 +22,5 @@ public:
 	class UCurveFloat* _curveFloatTemp;
 
 	virtual void SetState() override;
-
 	virtual void OnTriggerStart() override;
 };

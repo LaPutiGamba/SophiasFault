@@ -59,9 +59,9 @@ void APianoKey::UseInteraction()
 				
 				if (_myGameState->_dialogueWidget != nullptr && GetWorld() != nullptr) {
 					if (FMath::RandRange(0, 7) == 0 && !_myGameState->_dialogueWidget->IsInViewport()) {
-						if (UTextBlock* dialogueTextBlock = Cast<UTextBlock>(_myGameState->_dialogueWidget->GetWidgetFromName("DialogueText"))) {
+						if (_myGameState->_dialogueWidgetText) {
 							FText newText = FText::FromString("This doesn't sound very good, I think I'm doing something wrong...");
-							dialogueTextBlock->SetText(newText);
+							_myGameState->_dialogueWidgetText->SetText(newText);
 						}
 
 						_myGameState->_dialogueWidget->AddToViewport();

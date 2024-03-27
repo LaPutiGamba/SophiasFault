@@ -31,6 +31,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UUserWidget* _hudWidget;
 	class UUserWidget* _dialogueWidget;
+	class UTextBlock* _dialogueWidgetText;
 
 	TSubclassOf<class UUserWidget> _hudWidgetClass;
 	TSubclassOf<class UUserWidget> _dialogueWidgetClass;

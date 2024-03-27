@@ -40,4 +40,12 @@ void ASimpleAnimatedItem::UseInteraction()
 			_skeletalMeshComponent->Play(false);
 		}
 	}
+
+	if (_soundComponent != nullptr)
+		_soundComponent->Play();
+}
+
+void ASimpleAnimatedItem::OnTriggerStart()
+{
+	UseInteraction();
 }

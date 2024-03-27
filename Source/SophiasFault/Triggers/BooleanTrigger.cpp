@@ -30,6 +30,9 @@ void ABooleanTrigger::OnOverlapEnd(AActor* overlappedActor, AActor* otherActor)
                 if (ITriggerInterface* castedActor = Cast<ITriggerInterface>(triggeredActor))
                     castedActor->OnTriggerEnd();
             }
+
+            if (_bHasToTriggerOnce)
+				Destroy();
         }
     }
 }

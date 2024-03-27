@@ -3,10 +3,11 @@
 #include "CoreMinimal.h"
 #include "../AnimatedItem.h"
 #include "../../Interfaces/InteractiveInterface.h"
+#include "../../Interfaces/TriggerInterface.h"
 #include "SimpleAnimatedItem.generated.h"
 
 UCLASS()
-class SOPHIASFAULT_API ASimpleAnimatedItem : public AAnimatedItem, public IInteractiveInterface
+class SOPHIASFAULT_API ASimpleAnimatedItem : public AAnimatedItem, public IInteractiveInterface, public ITriggerInterface
 {
 	GENERATED_BODY()
 
@@ -21,4 +22,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
 	virtual void UseInteraction() override;
+
+	UFUNCTION(BlueprintCallable, Category = "Trigger")
+	virtual void OnTriggerStart() override;
 };
