@@ -23,6 +23,10 @@ AGMS_MyGameStateBase::AGMS_MyGameStateBase()
 	_positionedMirrorLights.Append(MirrorLightResult, UE_ARRAY_COUNT(MirrorLightResult));
 
 	_hudWidget = nullptr;
+	_dialogueWidget = nullptr;
+	_dialogueWidgetText = nullptr;
+	_noteWidget = nullptr;
+	_noteWidgetText = nullptr;
 
 	ConstructorHelpers::FClassFinder<UUserWidget> hudFinderClass(TEXT("/Game/Items/Widgets/WBP_HUD"));
 	if (hudFinderClass.Succeeded())
@@ -35,6 +39,12 @@ AGMS_MyGameStateBase::AGMS_MyGameStateBase()
 		_dialogueWidgetClass = dialogueFinderClass.Class;
 	else
 		_dialogueWidgetClass = nullptr;
+
+	ConstructorHelpers::FClassFinder<UUserWidget> noteFinderClass(TEXT("/Game/Items/Widgets/WBP_Note"));
+	if (noteFinderClass.Succeeded())
+		_noteWidgetClass = noteFinderClass.Class;
+	else
+		_noteWidgetClass = nullptr;
 }
 
 void AGMS_MyGameStateBase::BeginPlay() 
@@ -44,11 +54,20 @@ void AGMS_MyGameStateBase::BeginPlay()
 	_bOnChase = true;
 	
 	if (APlayerController* playerController = GetWorld()->GetFirstPlayerController()) {
-		if ((_dialogueWidget = CreateWidget<UUserWidget>(playerController, _dialogueWidgetClass)) != nullptr) {
+		_dialogueWidget = CreateWidget<UUserWidget>(playerController, _dialogueWidgetClass);
+		_noteWidget = CreateWidget<UUserWidget>(playerController, _noteWidgetClass);
+		if (_dialogueWidget != nullptr) {
             _dialogueWidgetText = Cast<UTextBlock>(_dialogueWidget->GetWidgetFromName("DialogueText"));
 
 			if (_dialogueWidgetText != nullptr) 
 				_dialogueWidgetText->SetText(FText::FromString("Hello, Sophia. I'm your father. I'm sorry for what I've done. I've been trying to fix my mistakes. I've left you a series of puzzles to solve. I hope you can forgive me. I love you."));
+		}
+
+		if (_noteWidget != nullptr) {
+			_noteWidgetText = Cast<UTextBlock>(_noteWidget->GetWidgetFromName("NoteText"));
+
+			if (_noteWidgetText != nullptr)
+				_noteWidgetText->SetText(FText::FromString("I'm sorry, Sophia. I've been trying to fix my mistakes. I've left you a series of puzzles to solve. I hope you can forgive me. I love you."));
 		}
 	}
 }

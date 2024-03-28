@@ -19,10 +19,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Note", meta = (MultiLine = true, BindWidget))
 	FText _noteText;
 
-	UPROPERTY(EditAnywhere, Category = "Note")
-	TSubclassOf<UUserWidget> _noteWidgetClass;
-	UUserWidget* _noteWidget;
-
 	virtual void BeginPlay() override;
 
 	virtual void OnAction() override;

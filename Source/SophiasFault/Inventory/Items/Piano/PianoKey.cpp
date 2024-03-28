@@ -59,16 +59,16 @@ void APianoKey::UseInteraction()
 				
 				if (_myGameState->_dialogueWidget != nullptr && GetWorld() != nullptr) {
 					if (FMath::RandRange(0, 7) == 0 && !_myGameState->_dialogueWidget->IsInViewport()) {
-						if (_myGameState->_dialogueWidgetText) {
-							FText newText = FText::FromString("This doesn't sound very good, I think I'm doing something wrong...");
-							_myGameState->_dialogueWidgetText->SetText(newText);
+						if (_myGameState != nullptr) {
+							if (_myGameState->_dialogueWidget != nullptr && _myGameState->_dialogueWidgetText != nullptr)
+								_myGameState->_dialogueWidgetText->SetText(FText::FromString("This doesn't sound very good, I think I'm doing something wrong..."));
 						}
-
 						_myGameState->_dialogueWidget->AddToViewport();
 
 						FTimerHandle dialogueTimerHandle;
 						GetWorld()->GetTimerManager().SetTimer(dialogueTimerHandle, [this]() {
-							_myGameState->_dialogueWidget->RemoveFromParent();
+							if (_myGameState->_dialogueWidget != nullptr)
+								_myGameState->_dialogueWidget->RemoveFromParent();
 						}, 5.0f, false);
 					}
 				}

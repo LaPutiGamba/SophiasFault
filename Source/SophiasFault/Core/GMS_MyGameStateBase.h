@@ -30,11 +30,18 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UUserWidget* _hudWidget;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UUserWidget* _dialogueWidget;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UTextBlock* _dialogueWidgetText;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UUserWidget* _noteWidget;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UTextBlock* _noteWidgetText;
 
 	TSubclassOf<class UUserWidget> _hudWidgetClass;
 	TSubclassOf<class UUserWidget> _dialogueWidgetClass;
+	TSubclassOf<class UUserWidget> _noteWidgetClass;
 
 	// AI functions
 	void SetOnChase(bool value) { _bOnChase = value; }
