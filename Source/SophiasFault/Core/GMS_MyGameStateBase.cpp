@@ -6,6 +6,7 @@
 #include "../Inventory/Items/Mirror Light/MirrorSolution.h"
 #include "../Cameras/EarthBallCamera.h"
 #include "../Cameras/PianoCamera.h"
+#include "../Inventory/DialogueWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/TextBlock.h" 
 
@@ -24,7 +25,6 @@ AGMS_MyGameStateBase::AGMS_MyGameStateBase()
 
 	_hudWidget = nullptr;
 	_dialogueWidget = nullptr;
-	_dialogueWidgetText = nullptr;
 	_noteWidget = nullptr;
 	_noteWidgetText = nullptr;
 
@@ -51,23 +51,19 @@ void AGMS_MyGameStateBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	_bOnChase = true;
+	_bOnChase = false;
 	
 	if (APlayerController* playerController = GetWorld()->GetFirstPlayerController()) {
-		_dialogueWidget = CreateWidget<UUserWidget>(playerController, _dialogueWidgetClass);
-		_noteWidget = CreateWidget<UUserWidget>(playerController, _noteWidgetClass);
-		if (_dialogueWidget != nullptr) {
-            _dialogueWidgetText = Cast<UTextBlock>(_dialogueWidget->GetWidgetFromName("DialogueText"));
+		if (_dialogueWidgetClass && _noteWidgetClass) {
+			_dialogueWidget = CreateWidget<UDialogueWidget>(playerController, _dialogueWidgetClass);
 
-			if (_dialogueWidgetText != nullptr) 
-				_dialogueWidgetText->SetText(FText::FromString("Hello, Sophia. I'm your father. I'm sorry for what I've done. I've been trying to fix my mistakes. I've left you a series of puzzles to solve. I hope you can forgive me. I love you."));
-		}
+			_noteWidget = CreateWidget<UUserWidget>(playerController, _noteWidgetClass);
+			if (_noteWidget != nullptr) {
+				_noteWidgetText = Cast<UTextBlock>(_noteWidget->GetWidgetFromName("NoteText"));
 
-		if (_noteWidget != nullptr) {
-			_noteWidgetText = Cast<UTextBlock>(_noteWidget->GetWidgetFromName("NoteText"));
-
-			if (_noteWidgetText != nullptr)
-				_noteWidgetText->SetText(FText::FromString("I'm sorry, Sophia. I've been trying to fix my mistakes. I've left you a series of puzzles to solve. I hope you can forgive me. I love you."));
+				if (_noteWidgetText != nullptr)
+					_noteWidgetText->SetText(FText::FromString("I'm sorry, Sophia. I've been trying to fix my mistakes. I've left you a series of puzzles to solve. I hope you can forgive me. I love you."));
+			}
 		}
 	}
 }

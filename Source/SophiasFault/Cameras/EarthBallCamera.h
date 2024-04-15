@@ -26,11 +26,10 @@ public:
 	FVector2D _initialMousePos;
 	bool _bIsRotating;
 
-	virtual void UseInteraction() override;
+	virtual void UseInteraction(ACameraBlend* item) override;
 
 	virtual void BlendBack() override;
 
 	void EarthRotation(const FInputActionValue& value);
-	void EndEarthRotation();
 	void ClickInteractive(const FInputActionValue& value);
 };

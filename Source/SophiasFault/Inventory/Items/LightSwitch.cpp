@@ -5,8 +5,10 @@ ALightSwitch::ALightSwitch()
 {
 }
 
-void ALightSwitch::UseInteraction()
+void ALightSwitch::UseInteraction(AItem* item)
 {
+	IInteractiveInterface::UseInteraction(item);
+
 	for (auto& lights : _lightActor) {
 		if (lights) {
 			if (lights->GetClass()->GetName() == "PointLight") {

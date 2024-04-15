@@ -73,14 +73,4 @@ Plugins/*/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
-/Content/MetaHumans/Common
-/Content/MetaHumans/MHAssetModified.txt
-/Content/MetaHumans/MHAssetVersions.txt
-/Content/MetaHumans/Ada/Face
-/Content/MetaHumans/Ada/Female
-/Content/MetaHumans/Ada/FemaleHair
-/Content/MetaHumans/Ada/Materials
-/Content/MetaHumans/Ada/Previews
-/Content/MetaHumans/Ada/SourceAssets
-/Content/MetaHumans/Ada/VersionInfo.txt
-/Content/MetaHumans/Ada/Body
+/Content/MetaHumans/*

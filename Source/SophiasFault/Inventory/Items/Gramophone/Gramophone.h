@@ -24,5 +24,5 @@ public:
 	class AItem* thirdShape;
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
-	virtual void UseInteraction() override;
+	virtual void UseInteraction(AItem* item) override;
 };

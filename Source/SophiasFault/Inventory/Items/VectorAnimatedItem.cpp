@@ -121,8 +121,10 @@ void AVectorAnimatedItem::SetState()
 	_bIsActivated = true;
 }
 
-void AVectorAnimatedItem::UseInteraction()
+void AVectorAnimatedItem::UseInteraction(AItem* item)
 {
+	IInteractiveInterface::UseInteraction(item);
+
 	if (!_bIsActivated)
 		_timelineComponent->PlayFromStart();
 }

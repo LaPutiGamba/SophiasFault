@@ -5,8 +5,10 @@ AGramophoneShape::AGramophoneShape()
 {
 }
 
-void AGramophoneShape::UseInteraction()
+void AGramophoneShape::UseInteraction(AItem* item)
 {	
+    IInteractiveInterface::UseInteraction(item);
+
     FQuat currentRotation = GetActorQuat();
     FQuat rotationDelta = FQuat(FRotator(20.0f, 0.0f, 0.0f));
     FQuat newRotation = rotationDelta * currentRotation;

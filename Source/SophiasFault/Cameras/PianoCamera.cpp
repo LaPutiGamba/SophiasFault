@@ -18,10 +18,10 @@ APianoCamera::APianoCamera()
 		_keyHelperWidgetClass = nullptr;
 }
 
-void APianoCamera::UseInteraction()
+void APianoCamera::UseInteraction(ACameraBlend* item)
 {
 	if (_myGameState->_onBlendTime <= 0.001f) {
-		ACameraBlend::UseInteraction();
+		ACameraBlend::UseInteraction(item);
 
 		_playerController->SetViewTargetWithBlend(this, 0.75f);
 		_myGameState->_onBlendTime = 0.75f;

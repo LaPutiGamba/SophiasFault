@@ -15,7 +15,7 @@ class SOPHIASFAULT_API ICameraBlendInterface
 	GENERATED_BODY()
 
 public:
-	virtual void UseInteraction() {};
+	virtual void UseInteraction(class ACameraBlend* item);
 	
 	virtual void BlendBack() {};
 };

@@ -5,6 +5,8 @@
 #include "Door.h"
 #include "../../../Sophia.h"
 #include "../../../Macros.h"
+#include "../../../Core/GMS_MyGameStateBase.h"
+#include "../../DialogueWidget.h"
 
 ADoorKey::ADoorKey()
 {
@@ -12,6 +14,8 @@ ADoorKey::ADoorKey()
 
 	_keyID = 0;
 	_bUsedKey = false;
+
+	_keyDialogue.GetEmpty();
 }
 
 void ADoorKey::BeginPlay()
@@ -78,11 +82,19 @@ void ADoorKey::OnAction()
 					FTimerHandle destroyTimerHandle;
 					GetWorld()->GetTimerManager().SetTimer(destroyTimerHandle, [this]() {
 						Destroy();
-						}, _metaSound->GetDuration(), false);
+					}, _metaSound->GetDuration(), false);
 				}
 			} else {
-				door->UseInteraction();
+				door->UseInteraction(nullptr);
 			}
 		}
 	}
+}
+
+void ADoorKey::PickUpItem(AItem* actor)
+{
+	IPickUpInterface::PickUpItem(actor);
+
+	if (!_keyDialogue.IsEmptyOrWhitespace())
+		_myGameState->_dialogueWidget->SetDialogueTextAndShow(_keyDialogue, 5.f);
 }

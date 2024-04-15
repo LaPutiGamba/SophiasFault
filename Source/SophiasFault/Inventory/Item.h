@@ -39,6 +39,8 @@ public:
 	// AUDIO
 	UPROPERTY(EditAnywhere, Category = "Audio")
 	class USoundBase* _metaSound;
+	UPROPERTY(EditAnywhere, Category = "Audio")
+	class USoundBase* _interactSound;
 
 	class UAudioComponent* _soundComponent;
 

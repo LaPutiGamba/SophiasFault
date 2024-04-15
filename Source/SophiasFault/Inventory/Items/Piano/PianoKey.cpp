@@ -3,6 +3,7 @@
 #include "../../../Core/GMS_MyGameStateBase.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/TextBlock.h" 
+#include "../../DialogueWidget.h"
 
 APianoKey::APianoKey()
 {
@@ -57,13 +58,9 @@ void APianoKey::UseInteraction()
 			} else {
 				_myGameState->GetPianoKeysPressed()->Reset();
 				
-				if (_myGameState->_dialogueWidget != nullptr && GetWorld() != nullptr) {
-					if (FMath::RandRange(0, 7) == 0 && !_myGameState->_dialogueWidget->IsInViewport()) {
-						if (_myGameState != nullptr) {
-							if (_myGameState->_dialogueWidget != nullptr && _myGameState->_dialogueWidgetText != nullptr)
-								_myGameState->_dialogueWidgetText->SetText(FText::FromString("This doesn't sound very good, I think I'm doing something wrong..."));
-						}
-						_myGameState->_dialogueWidget->AddToViewport();
+				if (_myGameState->_dialogueWidget != nullptr) {
+					if (FMath::RandRange(0, 7) == 0) {
+						_myGameState->_dialogueWidget->SetDialogueTextAndShow(FText::FromString("This doesn't sound very good, I think I'm doing something wrong..."), 5.0f);
 
 						FTimerHandle dialogueTimerHandle;
 						GetWorld()->GetTimerManager().SetTimer(dialogueTimerHandle, [this]() {

@@ -24,8 +24,8 @@ void AFlashlight::BeginPlay()
     _playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
     _flashlight = Cast<ASophia>(_playerController->GetPawn())->GetFlashlightComponent();
-    _flashlight->SetRelativeLocation(FVector(0.f, 5.f, 0.f));
-    _flashlight->SetRelativeRotation(FRotator(0.f, 90.f, 0.f));
+    _flashlight->SetRelativeLocation(FVector(8.f, 0.f, 3.f));
+    _flashlight->SetRelativeRotation(FRotator(0.f, 0.f, 0.f));
 
     if (_flashlight != nullptr)
         _flashlight->ToggleVisibility(false);

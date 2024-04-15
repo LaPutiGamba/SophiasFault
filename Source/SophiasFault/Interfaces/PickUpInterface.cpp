@@ -3,6 +3,7 @@
 #include "../Inventory/InventoryComponent.h"
 #include "Components/BoxComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 void IPickUpInterface::PickUpItem(AItem* item)
 {
@@ -36,6 +37,9 @@ void IPickUpInterface::PickUpItem(AItem* item)
 		item->_owningInventory->AddItem(item, false);
 	else 
 		item->_owningInventory->AddItem(item);
+
+	if (item->_interactSound)
+		UGameplayStatics::PlaySoundAtLocation(item, item->_interactSound, item->GetActorLocation());
 }
 
 void IPickUpInterface::DropItem(AItem* item)

@@ -17,6 +17,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/SpotLightComponent.h" 
+#include "Components/CapsuleComponent.h" 
 #include "Blueprint/UserWidget.h"
 #include "GameFramework/CharacterMovementComponent.h" 
 #include "Camera/CameraShakeBase.h"
@@ -28,6 +29,7 @@ ASophia::ASophia()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	// Init of GLOBAL variables
 	_sanity = 100;
 
 	// Init of GAMESTATE variable
@@ -121,7 +123,6 @@ void ASophia::Tick(float deltaTime)
 				}
 			} else {
 				_speed = 0.15f;
-				_springArmComponent->SetRelativeLocation(FVector(_cameraLocation.X, _cameraLocation.Y, (_cameraLocation.Z - 40.f)));
 			}
 		} else {
 			_staminaStatus = ST_IDLE;
@@ -144,9 +145,6 @@ void ASophia::Tick(float deltaTime)
 
 		_staminaTimer -= deltaTime;
 
-		if (!_myGameState->GetOnChase())
-			_springArmComponent->SetRelativeLocation(_cameraLocation);
-
 		if (_inventory->_currentHandItem) {
 			if (_inventory->_currentHandItem->_bNoSwitchableItem)
 				_staminaStatus = ST_IDLE;
@@ -159,9 +157,6 @@ void ASophia::Tick(float deltaTime)
 		If the player it's on the IDLE status, it the running or crouching button is pressed it will change to RUNNING status.
 	*/
 	case ST_IDLE:
-		if (!_myGameState->GetOnChase()) 
-			_springArmComponent->SetRelativeLocation(_cameraLocation);
-
 		if (_inventory->_currentHandItem) {
 			if (_inventory->_currentHandItem->_bNoSwitchableItem)
 				_speed = 0.2f;
@@ -260,6 +255,10 @@ void ASophia::RunOrCrouch(const FInputActionValue &value)
 {
 	// Activate the running or crouching status
 	_bRunningOrCrouching = value.Get<bool>();
+
+	if (!_myGameState->GetOnChase()) {
+		GetCapsuleComponent()->SetRelativeScale3D(FVector(1.f, 1.f, _bRunningOrCrouching ? 0.75f : 1.f));
+	}
 }
 
 void ASophia::Inventory(const FInputActionValue& value)
@@ -299,20 +298,23 @@ void ASophia::OnAction(const FInputActionValue &value)
 
 			if (changeCameraItem->_cameraActorBlend) {
 				if (IInteractiveInterface* cameraItem = Cast<IInteractiveInterface>(changeCameraItem))
-					cameraItem->UseInteraction();
+					cameraItem->UseInteraction(nullptr);
 
 				if (ICameraBlendInterface* item = Cast<ICameraBlendInterface>(changeCameraItem->_cameraActorBlend))
-					item->UseInteraction();
+					item->UseInteraction(changeCameraItem->_cameraActorBlend);
 			}
 		}
 	} else if (_inventory->_currentItemInSight) {
 		if (IInteractiveInterface* interactiveItem = Cast<IInteractiveInterface>(_inventory->_currentItemInSight)) {
-			interactiveItem->UseInteraction();
+			interactiveItem->UseInteraction(_inventory->_currentItemInSight);
 		} else if (IPickUpInterface* pickUpItem = Cast<IPickUpInterface>(_inventory->_currentItemInSight)) {
 			pickUpItem->PickUpItem(_inventory->_currentItemInSight);
 		}
 	} else if (_inventory->_currentAnimatedItemInSight) {
-		_inventory->_currentAnimatedItemInSight->UseInteraction();
+		if (AItem* interactiveItem = Cast<AItem>(_inventory->_currentAnimatedItemInSight))
+			_inventory->_currentAnimatedItemInSight->UseInteraction(interactiveItem);
+		else 
+			_inventory->_currentAnimatedItemInSight->UseInteraction(nullptr);
 	} 
 }
 

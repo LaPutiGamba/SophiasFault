@@ -27,6 +27,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Key")
 	uint8 _keyID;
 
+	UPROPERTY(EditAnywhere, Category = "Key")
+	FText _keyDialogue;
+
 	UPROPERTY(EditAnywhere, Category = "Timeline")
 	class UCurveVector* _curveVector;
 
@@ -41,4 +44,6 @@ public:
 	virtual void SetState();
 
 	virtual void OnAction() override;
+
+	virtual void PickUpItem(AItem* actor) override;
 };

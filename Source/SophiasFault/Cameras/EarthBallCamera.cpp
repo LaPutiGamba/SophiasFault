@@ -16,10 +16,10 @@ AEarthBallCamera::AEarthBallCamera()
 
 }
 
-void AEarthBallCamera::UseInteraction()
+void AEarthBallCamera::UseInteraction(ACameraBlend* item)
 {
 	if (_myGameState->_onBlendTime <= 0.001f && !_bPuzzleSolved) {
-		ACameraBlend::UseInteraction();
+		ACameraBlend::UseInteraction(item);
 
 		// Blend of the character camera to the Earth Ball camera.
 		_playerController->SetViewTargetWithBlend(this, 0.75f);

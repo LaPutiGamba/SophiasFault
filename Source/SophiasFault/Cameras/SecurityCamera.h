@@ -23,6 +23,6 @@ public:
     UPROPERTY(EditAnywhere, Category = "Camera Monitor")
     class ACameraMonitor* _cameraMonitor;
 
-	virtual void UseInteraction() override;
+	virtual void UseInteraction(ACameraBlend* item) override;
 	virtual void BlendBack() override;
 };

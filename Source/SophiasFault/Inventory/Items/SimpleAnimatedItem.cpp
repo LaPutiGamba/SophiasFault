@@ -2,6 +2,7 @@
 #include "Curves/CurveFloat.h" 
 #include "Components/SkeletalMeshComponent.h"
 #include "../../Macros.h"
+#include "../Item.h"
 
 ASimpleAnimatedItem::ASimpleAnimatedItem()
 {
@@ -22,7 +23,7 @@ void ASimpleAnimatedItem::BeginPlay()
 	}
 }
 
-void ASimpleAnimatedItem::UseInteraction()
+void ASimpleAnimatedItem::UseInteraction(AItem* item)
 {
 	if (!_bCanReverse) {
 		_skeletalMeshComponent->SetPosition(0.f);
@@ -47,5 +48,5 @@ void ASimpleAnimatedItem::UseInteraction()
 
 void ASimpleAnimatedItem::OnTriggerStart()
 {
-	UseInteraction();
+	UseInteraction(nullptr);
 }
