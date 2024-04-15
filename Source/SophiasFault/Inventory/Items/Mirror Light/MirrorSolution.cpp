@@ -9,8 +9,10 @@ AMirrorSolution::AMirrorSolution()
 	_deskDrawerActor = nullptr;
 }
 
-void AMirrorSolution::UseInteraction()
+void AMirrorSolution::UseInteraction(AItem* item)
 {
+	IInteractiveInterface::UseInteraction(item);
+
 	// Activate mirror light solution
 	const uint8 mirrorLightResult[] = { 1, 2, 3, 4, 5, 6, 7, 8 };
 

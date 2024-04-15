@@ -18,11 +18,14 @@ public:
 
 	virtual void BeginPlay() override;
 
-	virtual void UseInteraction() override;
+	virtual void UseInteraction(ACameraBlend* item) override;
 
 	virtual void BlendBack() override;
 
 	UEnhancedInputComponent* _enhancedInputComponent;
+
+	UPROPERTY(EditAnywhere, Category = "Audio")
+	class USoundBase* _interactSound;
 
 	UPROPERTY(EditAnywhere, Category = "Mapping Context")
 	class UInputAction* _getUpAction;

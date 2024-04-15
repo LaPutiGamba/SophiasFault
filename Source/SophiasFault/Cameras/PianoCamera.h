@@ -36,7 +36,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Mapping Context")
 	class UInputAction* _blendCameraAction;
 
-	virtual void UseInteraction() override;
+	virtual void UseInteraction(ACameraBlend* item) override;
 
 	virtual void BlendBack() override;
 

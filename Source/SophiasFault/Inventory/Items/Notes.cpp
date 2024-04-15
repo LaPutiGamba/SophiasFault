@@ -23,7 +23,7 @@ void ANotes::BeginPlay()
 void ANotes::OnAction()
 {
 	if (_myGameState != nullptr) {
-		if (_myGameState->_noteWidget != nullptr && !_myGameState->_noteWidget->IsPendingKill() && _playerController && _owningInventory->_bInspecting) {
+		if (_myGameState->_noteWidget != nullptr && IsValid(_myGameState->_noteWidget) && _playerController && _owningInventory->_bInspecting) {
 			if (!_myGameState->_noteWidget->IsInViewport()) {
 				if (_myGameState != nullptr) {
 					if (_myGameState->_noteWidget != nullptr && _myGameState->_noteWidgetText != nullptr)

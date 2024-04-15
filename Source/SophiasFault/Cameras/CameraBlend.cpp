@@ -24,8 +24,10 @@ void ACameraBlend::BeginPlay()
 	_enhancedInputComponent = Cast<UEnhancedInputComponent>(_playerController->InputComponent);
 }
 
-void ACameraBlend::UseInteraction() 
+void ACameraBlend::UseInteraction(ACameraBlend* item) 
 {
+	ICameraBlendInterface::UseInteraction(this);
+
 	if (_sophia->GetInventory()->_currentHandItem != nullptr)
 		_sophia->GetInventory()->_currentHandItem->_itemComponent->SetVisibility(false);
 

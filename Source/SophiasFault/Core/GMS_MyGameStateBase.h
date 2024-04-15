@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameStateBase.h"
+#include "Animation/WidgetAnimation.h" 
 #include "GMS_MyGameStateBase.generated.h"
 
 /**
@@ -31,17 +32,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UUserWidget* _hudWidget;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UUserWidget* _dialogueWidget;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UTextBlock* _dialogueWidgetText;
+	class UDialogueWidget* _dialogueWidget;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UUserWidget* _noteWidget;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UTextBlock* _noteWidgetText;
 
 	TSubclassOf<class UUserWidget> _hudWidgetClass;
-	TSubclassOf<class UUserWidget> _dialogueWidgetClass;
 	TSubclassOf<class UUserWidget> _noteWidgetClass;
+	TSubclassOf<class UDialogueWidget> _dialogueWidgetClass;
 
 	// AI functions
 	void SetOnChase(bool value) { _bOnChase = value; }

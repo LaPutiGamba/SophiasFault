@@ -10,9 +10,6 @@ class UInteractiveInterface : public UInterface
 	GENERATED_BODY()
 };
 
-/**
- * 
- */
 class SOPHIASFAULT_API IInteractiveInterface
 {
 	GENERATED_BODY()
@@ -20,5 +17,5 @@ class SOPHIASFAULT_API IInteractiveInterface
 public:
 	// INTERACTION
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
-	virtual void UseInteraction() {};
+	virtual void UseInteraction(class AItem* item);
 };

@@ -154,6 +154,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* playerInputComponent) override;
 
 	// Get the camera component
+	UFUNCTION(BlueprintCallable)
 	UCameraComponent* GetCameraComponent() { return _cameraComponent; }
 
 	// Get the inventory component

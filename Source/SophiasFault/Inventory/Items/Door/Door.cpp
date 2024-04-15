@@ -2,8 +2,12 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Curves/CurveFloat.h"
+#include "Components/TextBlock.h" 
+#include "../../DialogueWidget.h"
+#include "../../../Core/GMS_MyGameStateBase.h"
 #include "../../../Sophia.h"
 #include "../../../Macros.h"
+#include "../../Item.h"
 
 ADoor::ADoor()
 {
@@ -14,6 +18,8 @@ ADoor::ADoor()
 	_doorHandle = nullptr;
 
 	_timelineComponent = CreateDefaultSubobject<UTimelineComponent>(TEXT("Timeline Component"));
+
+	_doorLockedText = FText::FromString("The door is locked.");
 }
 
 void ADoor::BeginPlay()
@@ -52,7 +58,7 @@ void ADoor::SetState()
 	_bReadyState = true;
 }
 
-void ADoor::UseInteraction()
+void ADoor::UseInteraction(AItem* item)
 {
 	if (!_bDoorLocked && _bReadyState) {
 		_bOpenState = !_bOpenState;
@@ -62,7 +68,7 @@ void ADoor::UseInteraction()
 		if (_bOpenState) {
 			_bReadyState = false;
 			if (_doorHandle != nullptr) {
-				_doorHandle->UseInteraction();
+				_doorHandle->UseInteraction(nullptr);
 
 				FTimerHandle timerHandle;
 				GetWorld()->GetTimerManager().SetTimer(timerHandle, [this]() {
@@ -90,8 +96,9 @@ void ADoor::UseInteraction()
 		_bReadyState = false;
 
 		if (_doorHandle != nullptr) {
-			_doorHandle->UseInteraction();
+			_myGameState->_dialogueWidget->SetDialogueTextAndShow(_doorLockedText, 4.f);
 
+			_doorHandle->UseInteraction(nullptr);
 			_selectedCurveFloat = _lockedCurveFloat;
 
 			FTimerHandle timerHandle;
@@ -100,8 +107,10 @@ void ADoor::UseInteraction()
 
 				_soundComponent->SetIntParameter("Door State", 2);
 				_soundComponent->Play();
-				}, _doorHandle->_animationSequence->GetPlayLength() / 2, false);
+			}, _doorHandle->_animationSequence->GetPlayLength() / 2, false);
 		} else {
+			_myGameState->_dialogueWidget->SetDialogueTextAndShow(_doorLockedText, 4.f);
+
 			_selectedCurveFloat = _lockedCurveFloat;
 
 			_timelineComponent->PlayFromStart();

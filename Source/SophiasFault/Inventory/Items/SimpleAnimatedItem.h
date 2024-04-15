@@ -21,7 +21,7 @@ public:
 	virtual void BeginPlay() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
-	virtual void UseInteraction() override;
+	virtual void UseInteraction(class AItem* item) override;
 
 	UFUNCTION(BlueprintCallable, Category = "Trigger")
 	virtual void OnTriggerStart() override;

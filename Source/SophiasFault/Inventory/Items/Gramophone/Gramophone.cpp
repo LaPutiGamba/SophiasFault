@@ -8,8 +8,10 @@ AGramophone::AGramophone()
 	thirdShape = nullptr;
 }
 
-void AGramophone::UseInteraction()
+void AGramophone::UseInteraction(AItem* item)
 {
+	IInteractiveInterface::UseInteraction(item);
+
 	if (firstShape != nullptr && secondShape != nullptr && thirdShape != nullptr) {
 		FRotator firstShapeRot = firstShape->GetActorRotation();
 		FRotator secondShapeRot = secondShape->GetActorRotation();

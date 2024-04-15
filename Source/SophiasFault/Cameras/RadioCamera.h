@@ -25,6 +25,6 @@ public:
 	FInputBindingHandle* _mouseAxisHandle;
 	FInputBindingHandle* _turnOffHandle;
 
-	virtual void UseInteraction() override;
+	virtual void UseInteraction(ACameraBlend* item) override;
 	virtual void BlendBack() override;
 };

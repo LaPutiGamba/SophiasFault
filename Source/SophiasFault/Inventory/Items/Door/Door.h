@@ -40,6 +40,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Door")
 	bool _bDoorLocked;
 
+	UPROPERTY(EditAnywhere, Category = "Door", meta = (EditCondition = "_bDoorLocked"))
+	FText _doorLockedText;
+
 	UPROPERTY(EditAnywhere, Category = "Door")
 	bool _bRotateDirection;
 
@@ -58,5 +61,5 @@ public:
 	virtual void SetState();
 
 	UFUNCTION(BlueprintCallable, Category = "Interaction")
-	virtual void UseInteraction() override;
+	virtual void UseInteraction(class AItem* item) override;
 };
