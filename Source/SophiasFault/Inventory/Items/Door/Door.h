@@ -40,7 +40,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Door")
 	bool _bDoorLocked;
 
-	UPROPERTY(EditAnywhere, Category = "Door", meta = (EditCondition = "_bDoorLocked"))
+	UPROPERTY(EditAnywhere, Category = "Door")
 	FText _doorLockedText;
 
 	UPROPERTY(EditAnywhere, Category = "Door")

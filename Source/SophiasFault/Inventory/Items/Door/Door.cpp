@@ -19,7 +19,7 @@ ADoor::ADoor()
 
 	_timelineComponent = CreateDefaultSubobject<UTimelineComponent>(TEXT("Timeline Component"));
 
-	_doorLockedText = FText::FromString("The door is locked.");
+	_doorLockedText.GetEmpty();
 }
 
 void ADoor::BeginPlay()
@@ -96,7 +96,8 @@ void ADoor::UseInteraction(AItem* item)
 		_bReadyState = false;
 
 		if (_doorHandle != nullptr) {
-			_myGameState->_dialogueWidget->SetDialogueTextAndShow(_doorLockedText, 4.f);
+			if (!_doorLockedText.IsEmptyOrWhitespace())
+				_myGameState->_dialogueWidget->SetDialogueTextAndShow(_doorLockedText, 4.f);
 
 			_doorHandle->UseInteraction(nullptr);
 			_selectedCurveFloat = _lockedCurveFloat;
@@ -109,7 +110,8 @@ void ADoor::UseInteraction(AItem* item)
 				_soundComponent->Play();
 			}, _doorHandle->_animationSequence->GetPlayLength() / 2, false);
 		} else {
-			_myGameState->_dialogueWidget->SetDialogueTextAndShow(_doorLockedText, 4.f);
+			if (!_doorLockedText.IsEmptyOrWhitespace())
+				_myGameState->_dialogueWidget->SetDialogueTextAndShow(_doorLockedText, 4.f);
 
 			_selectedCurveFloat = _lockedCurveFloat;
 

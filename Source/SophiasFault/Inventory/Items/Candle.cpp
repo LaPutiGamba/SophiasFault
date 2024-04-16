@@ -6,16 +6,15 @@
 ACandle::ACandle()
 {
 	// Create the particle system component
-	_particleSystem = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystem"));
+	_particleSystem = CreateDefaultSubobject<UParticleSystemComponent>("ParticleSystem");
 	_particleSystem->SetupAttachment(_meshComponent);
 	_particleSystem->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
 	_particleSystem->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f));
 	_particleSystem->bAutoActivate = true;
 	_particleSystem->bAutoDestroy = false;
-	_particleSystem->RegisterComponent();
 
 	// Create the point light component
-	_pointLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("CandleLight"));
+	_pointLight = CreateDefaultSubobject<UPointLightComponent>("CandleLight");
 	_pointLight->SetupAttachment(RootComponent);
 }
 
