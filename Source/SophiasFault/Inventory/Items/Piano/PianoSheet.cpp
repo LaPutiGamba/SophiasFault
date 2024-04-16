@@ -27,7 +27,7 @@ void APianoSheet::OnAction()
 				boxComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 			AttachToActor(hit.GetActor(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-			SetActorRelativeLocation(FVector(10.f, 70.f, 1.f));
+			SetActorRelativeLocation(FVector(17.f, 0.f, 0.f));
 			_meshComponent->SetVisibility(true);
 			_owningInventory->RemoveItem(this);
 		}

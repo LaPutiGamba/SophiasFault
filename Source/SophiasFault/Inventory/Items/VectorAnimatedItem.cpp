@@ -9,7 +9,8 @@ AVectorAnimatedItem::AVectorAnimatedItem()
 	_curveVectorLocation = CreateDefaultSubobject<UCurveVector>(TEXT("CurveVectorLocation"));
 	_curveVectorRotation = CreateDefaultSubobject<UCurveVector>(TEXT("CurveVectorRotation"));
 
-	_bIsActivated = false;
+	_bUseOnce = false;
+	_bUseState = false;
 
 	_bLocation = false;
 	_bRotation = false;
@@ -29,6 +30,8 @@ AVectorAnimatedItem::AVectorAnimatedItem()
 	_curveVectorRotValue = FVector(0.f, 0.f, 0.f);
 	_locationApplied = FVector(0.f, 0.f, 0.f);
 	_rotationApplied = FVector(0.f, 0.f, 0.f);
+
+	_interpolationMode = ERichCurveInterpMode::RCIM_Cubic;
 }
 
 void AVectorAnimatedItem::BeginPlay()
@@ -118,13 +121,17 @@ void AVectorAnimatedItem::ControlVectorAnimation(FVector value)
 
 void AVectorAnimatedItem::SetState()
 {
-	_bIsActivated = true;
 }
 
 void AVectorAnimatedItem::UseInteraction(AItem* item)
 {
 	IInteractiveInterface::UseInteraction(item);
 
-	if (!_bIsActivated)
-		_timelineComponent->PlayFromStart();
+	if (!_bUseState) {
+		_timelineComponent->Play();
+		_bUseState = true;
+	} else {
+		_timelineComponent->Reverse();
+		_bUseState = false;
+	}
 }

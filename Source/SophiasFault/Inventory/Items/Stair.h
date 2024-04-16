@@ -24,6 +24,7 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	class AActor* _finalPosition;
+	class UStaticMeshComponent* _finalPositionMesh;
 
 	UPROPERTY(EditAnywhere)
 	class UMaterialInterface* _defaultMaterial;

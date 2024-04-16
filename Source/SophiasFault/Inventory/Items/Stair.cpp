@@ -20,16 +20,18 @@ void AStair::BeginPlay()
 	if (_finalPosition) {
 		_finalPosition->SetActorHiddenInGame(true);
 		_finalPosition->SetActorEnableCollision(false);
+		_finalPositionMesh = Cast<UStaticMeshComponent>(_finalPosition->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 	}
 }
 
 void AStair::OnAction()
 {
-	if (_triggered) {
+	if (_triggered && _finalPosition && _finalPositionMesh) {
 		_owningInventory->RemoveItem(this);
 		Destroy();
 		_owningInventory->_currentHandItem = nullptr;
 
+		_finalPositionMesh->SetRenderCustomDepth(false);
 		_finalPosition->SetActorHiddenInGame(false);
 		_finalPosition->SetActorEnableCollision(true);
 		_bNoSwitchableItem = false;

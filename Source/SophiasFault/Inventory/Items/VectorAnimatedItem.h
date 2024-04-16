@@ -19,7 +19,10 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float deltaTime) override;
 
-	bool _bIsActivated;
+	UPROPERTY(EditAnywhere, Category = "Animation")
+	bool _bUseOnce;
+
+	bool _bUseState;
 
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	class UCurveVector* _curveVectorLocation;
