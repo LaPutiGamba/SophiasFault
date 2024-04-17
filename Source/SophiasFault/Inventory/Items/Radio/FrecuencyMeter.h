@@ -18,7 +18,7 @@ public:
 	AFrecuencyMeter();
 
 	UPROPERTY(EditAnywhere, Category = "Radio")
-	class AItem* _radio;
+	class ARadio* _radio;
 
 	UPROPERTY(EditAnywhere, Category = "Radio")
 	class AActor* _needleActor;
