@@ -1,7 +1,7 @@
 #include "FrecuencyMeter.h"
 #include "../../../Cameras/RadioCamera.h"
 #include "Kismet/GameplayStatics.h"
-#include "../../Item.h"
+#include "../../Items/Radio/Radio.h"
 #include "../../../Macros.h"
 
 AFrecuencyMeter::AFrecuencyMeter()
@@ -33,7 +33,7 @@ void AFrecuencyMeter::ChangeFrequency(const FInputActionValue& value)
         if (_currentFrequency < 108.f) {
             _currentFrequency += 0.1f;
 
-            AddActorLocalRotation(FRotator(0.f, 1.f, 0.f));
+            AddActorLocalRotation(FRotator(1.f, 0.f, 0.f));
 
             if (_needleActor != nullptr)
                 _needleActor->AddActorLocalOffset(FVector(-0.1f, 0.f, 0.f));
@@ -42,7 +42,7 @@ void AFrecuencyMeter::ChangeFrequency(const FInputActionValue& value)
         if (_currentFrequency > 88.1f) {
             _currentFrequency -= 0.1f;
 
-            AddActorLocalRotation(FRotator(0.f, -1.f, 0.f));
+            AddActorLocalRotation(FRotator(-1.f, 0.f, 0.f));
 
             if (_needleActor != nullptr)
                 _needleActor->AddActorLocalOffset(FVector(0.1f, 0.f, 0.f));
@@ -62,7 +62,7 @@ void AFrecuencyMeter::ChangeFrequency(const FInputActionValue& value)
     else 
         radioFrecuency = 0;
 
-    if (_currentRadioFrecuency != radioFrecuency) {
+    if (_currentRadioFrecuency != radioFrecuency && _radio->_bRadioOn) {
         _currentRadioFrecuency = radioFrecuency;
 
         if (_radio->_soundComponent->IsPlaying())
