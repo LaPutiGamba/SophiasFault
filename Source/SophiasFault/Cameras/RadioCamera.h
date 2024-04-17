@@ -21,9 +21,12 @@ public:
 	class UInputAction* _mouseAxisAction;
 	UPROPERTY(EditAnywhere, Category = "Mapping Context")
 	class UInputAction* _turnOffAction;
+	UPROPERTY(EditAnywhere, Category = "Mapping Context")
+	class UInputAction* _changeVolumeAction;
 
 	FInputBindingHandle* _mouseAxisHandle;
 	FInputBindingHandle* _turnOffHandle;
+	FInputBindingHandle* _changeVolumeHandle;
 
 	virtual void UseInteraction(ACameraBlend* item) override;
 	virtual void BlendBack() override;

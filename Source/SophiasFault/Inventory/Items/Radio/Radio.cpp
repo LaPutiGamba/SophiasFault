@@ -11,6 +11,8 @@
 ARadio::ARadio()
 {
 	_bRadioOn = false;
+
+	_volume = 1.f;
 }
 
 void ARadio::BeginPlay()
@@ -47,7 +49,7 @@ void ARadio::ControlRadioButton(float value)
 	_curveFloatValue = _curveFloat->GetFloatValue(_timelineValue);
 
 	if (_buttonActor != nullptr) 
-		_buttonActor->SetActorRelativeRotation(FQuat(FRotator(_curveFloatValue, 0.f, 0.f)));
+		_buttonActor->SetActorRelativeRotation(FQuat(FRotator(0.f, _curveFloatValue, 0.f)));
 }
 
 void ARadio::SetState()
@@ -81,5 +83,26 @@ void ARadio::TurnOffRadio()
 
 		UKismetSystemLibrary::Delay(GetWorld(), 0.1f, FLatentActionInfo());
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), _turnOffSound, GetActorLocation());
+	}
+}
+
+void ARadio::ChangeVolume(const FInputActionValue& value)
+{
+	if (APlayerController* playerController = Cast<APlayerController>(GetWorld()->GetFirstPlayerController())) {
+		if (playerController->PlayerInput->IsPressed(EKeys::W)) {
+			if (_volume < 2.f) {
+				_volume += 0.025f;
+
+				_volumeMeter->AddActorLocalRotation(FRotator(1.f, 0.f, 0.f));
+			}
+		} else {
+			if (_volume > 0.f) {
+				_volume -= 0.025f;
+
+				_volumeMeter->AddActorLocalRotation(FRotator(-1.f, 0.f, 0.f));
+			}
+		}
+
+		_soundComponent->SetVolumeMultiplier(_volume);
 	}
 }

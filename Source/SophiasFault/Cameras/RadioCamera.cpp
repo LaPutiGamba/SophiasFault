@@ -18,6 +18,7 @@ void ARadioCamera::UseInteraction(ACameraBlend* item)
 			_getUpHandle = &_enhancedInputComponent->BindAction(_getUpAction, ETriggerEvent::Triggered, this, &ARadioCamera::BlendBack);
 			_mouseAxisHandle = &_enhancedInputComponent->BindAction(_mouseAxisAction, ETriggerEvent::Triggered, _frecuencyMeter, &AFrecuencyMeter::ChangeFrequency);
 			_turnOffHandle = &_enhancedInputComponent->BindAction(_turnOffAction, ETriggerEvent::Triggered, _radio, &ARadio::TurnOffRadio);
+			_changeVolumeHandle = &_enhancedInputComponent->BindAction(_changeVolumeAction, ETriggerEvent::Triggered, _radio, &ARadio::ChangeVolume);
 		}
 	}
 }
@@ -29,5 +30,6 @@ void ARadioCamera::BlendBack()
 	if (_enhancedInputComponent) {
 		_enhancedInputComponent->RemoveBinding(*_mouseAxisHandle);
 		_enhancedInputComponent->RemoveBinding(*_turnOffHandle);
+		_enhancedInputComponent->RemoveBinding(*_changeVolumeHandle);
 	}
 }

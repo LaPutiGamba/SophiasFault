@@ -19,6 +19,9 @@ public:
 	class AFrecuencyMeter* _frecuencyMeter;
 
 	UPROPERTY(EditAnywhere, Category = "Radio")
+	class AActor* _volumeMeter;
+
+	UPROPERTY(EditAnywhere, Category = "Radio")
 	class AActor* _buttonActor;	
 
 	UPROPERTY(EditAnywhere, Category = "Radio")
@@ -33,10 +36,12 @@ public:
 
 	float _timelineValue;
 	float _curveFloatValue;
+	float _volume;
 
 	bool _bRadioOn;
 
 	void TurnOffRadio();
+	void ChangeVolume(const FInputActionValue& value);
 
 	UFUNCTION()
 	void ControlRadioButton(float value);
