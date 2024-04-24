@@ -32,6 +32,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UUserWidget* _hudWidget;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UKeysHUDWidget* _keysHudWidget;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UDialogueWidget* _dialogueWidget;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UUserWidget* _noteWidget;
@@ -39,6 +41,8 @@ public:
 	class UTextBlock* _noteWidgetText;
 
 	TSubclassOf<class UUserWidget> _hudWidgetClass;
+	TSubclassOf<class UKeysHUDWidget> _keysHudWidgetClass;
+	TSubclassOf<class UKeysHUDHelper> _keysHudHelperClass;
 	TSubclassOf<class UUserWidget> _noteWidgetClass;
 	TSubclassOf<class UDialogueWidget> _dialogueWidgetClass;
 

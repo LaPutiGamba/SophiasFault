@@ -172,6 +172,9 @@ public:
 	// Get the flashlight component
 	class USpotLightComponent* GetFlashlightComponent() { return _flashlightComponent; }
 
+	// Set the speed
+	void SetSpeed(float speed) { _speed = speed; }
+
 	void ToggleMovement(bool& bInspecting);
 
 protected:

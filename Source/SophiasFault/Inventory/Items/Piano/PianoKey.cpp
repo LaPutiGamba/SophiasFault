@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/TextBlock.h" 
 #include "../../DialogueWidget.h"
+#include "../../KeysHUDWidget.h"
 
 APianoKey::APianoKey()
 {
@@ -60,13 +61,8 @@ void APianoKey::UseInteraction()
 				
 				if (_myGameState->_dialogueWidget != nullptr) {
 					if (FMath::RandRange(0, 7) == 0) {
+						_myGameState->_keysHudWidget->HideHUD(5.0f);
 						_myGameState->_dialogueWidget->SetDialogueTextAndShow(FText::FromString("This doesn't sound very good, I think I'm doing something wrong..."), 5.0f);
-
-						FTimerHandle dialogueTimerHandle;
-						GetWorld()->GetTimerManager().SetTimer(dialogueTimerHandle, [this]() {
-							if (_myGameState->_dialogueWidget != nullptr)
-								_myGameState->_dialogueWidget->RemoveFromParent();
-						}, 5.0f, false);
 					}
 				}
 			}

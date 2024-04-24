@@ -7,6 +7,8 @@
 #include "../Cameras/EarthBallCamera.h"
 #include "../Cameras/PianoCamera.h"
 #include "../Inventory/DialogueWidget.h"
+#include "../Inventory/KeysHUDWidget.h"
+#include "../Inventory/KeysHUDHelper.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/TextBlock.h" 
 
@@ -24,6 +26,7 @@ AGMS_MyGameStateBase::AGMS_MyGameStateBase()
 	_positionedMirrorLights.Append(MirrorLightResult, UE_ARRAY_COUNT(MirrorLightResult));
 
 	_hudWidget = nullptr;
+	_keysHudWidget = nullptr;
 	_dialogueWidget = nullptr;
 	_noteWidget = nullptr;
 	_noteWidgetText = nullptr;
@@ -33,6 +36,18 @@ AGMS_MyGameStateBase::AGMS_MyGameStateBase()
 		_hudWidgetClass = hudFinderClass.Class;
 	else
 		_hudWidgetClass = nullptr;
+
+	ConstructorHelpers::FClassFinder<UKeysHUDWidget> hudKeysFinderClass(TEXT("/Game/Items/Widgets/WBP_KeysHUD"));
+	if (hudKeysFinderClass.Succeeded())
+		_keysHudWidgetClass = hudKeysFinderClass.Class;
+	else
+		_keysHudWidgetClass = nullptr;
+
+	ConstructorHelpers::FClassFinder<UKeysHUDHelper> hudKeysHelperFinderClass(TEXT("/Game/Items/Widgets/WBP_KeysHUDHelper"));
+	if (hudKeysHelperFinderClass.Succeeded())
+		_keysHudHelperClass = hudKeysHelperFinderClass.Class;
+	else
+		_keysHudHelperClass = nullptr;
 
 	ConstructorHelpers::FClassFinder<UUserWidget> dialogueFinderClass(TEXT("/Game/Items/Widgets/WBP_Dialogue"));
 	if (dialogueFinderClass.Succeeded())
@@ -55,6 +70,7 @@ void AGMS_MyGameStateBase::BeginPlay()
 	
 	if (APlayerController* playerController = GetWorld()->GetFirstPlayerController()) {
 		if (_dialogueWidgetClass && _noteWidgetClass) {
+			_keysHudWidget = CreateWidget<UKeysHUDWidget>(playerController, _keysHudWidgetClass);
 			_dialogueWidget = CreateWidget<UDialogueWidget>(playerController, _dialogueWidgetClass);
 
 			_noteWidget = CreateWidget<UUserWidget>(playerController, _noteWidgetClass);

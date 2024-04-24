@@ -28,6 +28,7 @@ AItem::AItem()
 	_playerCamera = nullptr;
 	_itemComponent = nullptr;
 	_bNoSwitchableItem = false;
+	_noSwitchableItemSpeed = 0.2f;
 	_myGameState = nullptr;
 
 	_pickUpLocation = FVector(50.f, 30.f, -12.f);

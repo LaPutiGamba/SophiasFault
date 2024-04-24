@@ -5,12 +5,15 @@
 #include "Components/SceneCaptureComponent2D.h" 
 #include "GameFramework/PlayerController.h"
 #include "Components/AudioComponent.h"
+#include "../../DialogueWidget.h"
 #include "../../../Macros.h"
 
 ACameraMonitor::ACameraMonitor()
 {
 	_cameraMaterialRef = nullptr;
 	_screenBrightness = 0.5f;
+	_cameraMonitorDialogue = FText::GetEmpty();
+	_bDialoguePlayed = false;
 }
 
 void ACameraMonitor::BeginPlay()
@@ -79,5 +82,12 @@ void ACameraMonitor::ChangeSecurityCamera()
 
 		if (_metaSound != nullptr && _soundComponent != nullptr)
 			_soundComponent->Play();
+
+		if (_currentCameraIndex == 1 && !_bDialoguePlayed) {
+			if (!_cameraMonitorDialogue.IsEmptyOrWhitespace()) {
+				_myGameState->_dialogueWidget->SetDialogueTextAndShow(_cameraMonitorDialogue, 5.f);
+				_bDialoguePlayed = true;
+			}
+		}
 	}
 }

@@ -6,16 +6,13 @@
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/TextBlock.h" 
+#include "../Inventory/KeysHUDWidget.h"
+#include "Engine/RectLight.h" 
 #include "../Sophia.h"
 #include "../Macros.h"
 
 APianoCamera::APianoCamera()
 {
-	ConstructorHelpers::FClassFinder<UUserWidget> keyHelperFinderClass(TEXT("/Game/Items/Widgets/WBP_KeyHelper"));
-	if (keyHelperFinderClass.Succeeded())
-		_keyHelperWidgetClass = keyHelperFinderClass.Class;
-	else
-		_keyHelperWidgetClass = nullptr;
 }
 
 void APianoCamera::UseInteraction(ACameraBlend* item)
@@ -31,15 +28,8 @@ void APianoCamera::UseInteraction(ACameraBlend* item)
 		GetWorld()->GetTimerManager().SetTimer(blendCameraHandle, [this]() {
 			_playerController->bShowMouseCursor = true;
 
-			_keyHelperWidget = CreateWidget<UUserWidget>(_playerController, _keyHelperWidgetClass);
-			if (_keyHelperWidget != nullptr) {
-				if (UTextBlock* keyHelperTextBlock = Cast<UTextBlock>(_keyHelperWidget->GetWidgetFromName("KeyHelper"))) {
-					FText newText = FText::FromString("W");
-					keyHelperTextBlock->SetText(newText);
-				}
-
-				_keyHelperWidget->AddToViewport();
-			}
+			_myGameState->_keysHudWidget->AddKeyToHorizontalBox(FText::FromString("W"), FText::FromString("Piano Sheet"), true);
+			_myGameState->_keysHudWidget->ShowHUD();
 		}, 0.8f, false);
 
 		if (_enhancedInputComponent) {
@@ -62,9 +52,8 @@ void APianoCamera::BlendBack()
 
 	Cast<ASophia>(GetWorld()->GetFirstPlayerController()->GetPawn())->GetInventory()->_currentChangeCameraItem = nullptr;
 
-	if (_keyHelperWidget != nullptr) {
-		_keyHelperWidget->RemoveFromParent();
-		_keyHelperWidget = nullptr;
+	if (_myGameState->_keysHudWidget != nullptr) {
+		_myGameState->_keysHudWidget->RemoveFromParent();
 	}
 }
 
@@ -95,6 +84,9 @@ void APianoCamera::ClickInteractive(const FInputActionValue& value)
 void APianoCamera::LookPianoSheet(const FInputActionValue& value)
 {
 	bool bIsPianoSheet = value.Get<bool>();
+
+	if (_pianoHollowKey->_timelineComponent->IsPlaying())
+		return;
 
 	FTimerHandle blendCameraHandle;
 	if (bIsPianoSheet) {
@@ -131,6 +123,7 @@ void APianoCamera::ActivatePianoSolution()
 		FTimerHandle drawerTimerHandle;
 		GetWorld()->GetTimerManager().SetTimer(drawerTimerHandle, [this]() {
 			_drawer->AddActorLocalOffset(FVector(30.f, 0.f, 0.f));
+			_keyLight->SetActorHiddenInGame(false);
 		}, 10.f, false);
 	}
 }

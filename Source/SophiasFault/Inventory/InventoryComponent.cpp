@@ -69,8 +69,6 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
     if (GetWorld()->LineTraceSingleByChannel(_hit, _start, _end, ECC_Visibility, FComponentQueryParams::DefaultQueryParam, FCollisionResponseParams::DefaultResponseParam)) {
         // If the player has in sight a Current Change Camera Item saves a pointer to that Actor.
         if (_hit.GetActor()->GetClass()->ImplementsInterface(UActorBlendInterface::StaticClass())) {
-            //if (_currentChangeCameraItem)
-            //    Cast<AItem>(_currentChangeCameraItem)->_meshComponent->SetRenderCustomDepth(false);
             _currentChangeCameraItem = _hit.GetActor();
 
             if (_myGameState->_hudWidget != nullptr) {
@@ -82,10 +80,6 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
         } else if (_hit.GetActor()->GetClass()->ImplementsInterface(UInteractiveInterface::StaticClass()) ||
             _hit.GetActor()->GetClass()->ImplementsInterface(UPickUpInterface::StaticClass()) ||
             _hit.GetActor()->GetClass()->ImplementsInterface(UOnActionInterface::StaticClass())) {
-            //if (_currentItemInSight)
-            // _currentItemInSight->_meshComponent->SetRenderCustomDepth(false);
-            //if (_currentAnimatedItemInSight)
-            //    Cast<AAnimatedItem>(_currentAnimatedItemInSight)->_skeletalMeshComponent->SetRenderCustomDepth(false);
             _currentItemInSight = Cast<AItem>(_hit.GetActor());
             _currentAnimatedItemInSight = Cast<IInteractiveInterface>(_hit.GetActor());
 
@@ -96,13 +90,6 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
 
         // If the player doesn't has in sight any item, all the items are null.
         } else {
-            //if (_currentItemInSight)
-            //    _currentItemInSight->_meshComponent->SetRenderCustomDepth(false);
-            //if (_currentAnimatedItemInSight)
-            //    Cast<AAnimatedItem>(_currentAnimatedItemInSight)->_skeletalMeshComponent->SetRenderCustomDepth(false);
-            //if (_currentChangeCameraItem)
-            //    Cast<AItem>(_currentChangeCameraItem)->_meshComponent->SetRenderCustomDepth(false);
-
             _currentChangeCameraItem = nullptr;
             _currentItemInSight = nullptr;
             _currentAnimatedItemInSight = nullptr;
@@ -112,22 +99,8 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
                 _myGameState->_hudWidget->GetWidgetFromName("VisibleItem")->SetVisibility(ESlateVisibility::Hidden);
             }
         }
-
-   //     if (_currentItemInSight)
-   //         _currentItemInSight->_meshComponent->SetRenderCustomDepth(true);
-   //     if (_currentAnimatedItemInSight)
-			//Cast<AAnimatedItem>(_currentAnimatedItemInSight)->_skeletalMeshComponent->SetRenderCustomDepth(true);
-   //     if (_currentChangeCameraItem)
-   //         Cast<AItem>(_currentChangeCameraItem)->_meshComponent->SetRenderCustomDepth(true);
     // If the player doesn't has in sight any item, all the items are null
     } else {
-        //if (_currentItemInSight)
-        //    _currentItemInSight->_meshComponent->SetRenderCustomDepth(false);
-        //if (_currentAnimatedItemInSight)
-        //    Cast<AAnimatedItem>(_currentAnimatedItemInSight)->_skeletalMeshComponent->SetRenderCustomDepth(false);
-        //if (_currentChangeCameraItem)
-        //    Cast<AItem>(_currentChangeCameraItem)->_meshComponent->SetRenderCustomDepth(false);
-
         _currentChangeCameraItem = nullptr;
         _currentItemInSight = nullptr;
         _currentAnimatedItemInSight = nullptr;
@@ -242,17 +215,22 @@ void UInventoryComponent::ChangeCurrentHandItem(const FInputActionValue& value, 
 
     // Check if the input is from a number key (0-9)
     if (index >= 0 && index <= 9) {
-        _currentItemSlotIndex = index;
+        if (_items[index] != nullptr)
+            _currentItemSlotIndex = index;
     // Check if the input is from the mouse wheel axis
     } else {
         float mouseAxis = value.Get<float>();
 
         if (mouseAxis > 0.f) {
-            if ((_currentItemSlotIndex < 9))
-                _currentItemSlotIndex++;
+            if ((_currentItemSlotIndex < 9)) {
+                if (_items[_currentItemSlotIndex + 1] != nullptr)
+					_currentItemSlotIndex++;
+            }
         } else if (mouseAxis < 0.f) {
-            if (_currentItemSlotIndex > 0)
-                _currentItemSlotIndex--;
+            if ((_currentItemSlotIndex > 0)) {
+				if (_items[_currentItemSlotIndex - 1] != nullptr)
+                    _currentItemSlotIndex--;
+            }
         }
     }
 

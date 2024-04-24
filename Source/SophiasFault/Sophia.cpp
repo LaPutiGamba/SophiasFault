@@ -76,7 +76,8 @@ ASophia::ASophia()
 	_holdingComponent->SetupAttachment(_cameraComponent);
 
 	_flashlightComponent = CreateDefaultSubobject<USpotLightComponent>(TEXT("FlashlightComponent"));
-	_flashlightComponent->SetupAttachment(_holdingComponent);
+	_flashlightComponent->SetRelativeLocation(FVector(58.f, 24.5f, -20.f));
+	_flashlightComponent->SetupAttachment(_cameraComponent);
 
 	_bCanMove = true;
 }
@@ -159,7 +160,7 @@ void ASophia::Tick(float deltaTime)
 	case ST_IDLE:
 		if (_inventory->_currentHandItem) {
 			if (_inventory->_currentHandItem->_bNoSwitchableItem)
-				_speed = 0.2f;
+				_speed = _inventory->_currentHandItem->_noSwitchableItemSpeed;
 			else
 				_speed = 0.3f;
 		} else {

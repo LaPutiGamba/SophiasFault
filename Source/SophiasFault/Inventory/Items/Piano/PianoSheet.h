@@ -16,6 +16,5 @@ public:
 
 	virtual void BeginPlay() override;
 
-
 	virtual void OnAction() override;
 };

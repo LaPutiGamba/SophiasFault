@@ -6,8 +6,17 @@ void UDialogueWidget::SetDialogueTextAndShow(FText text, float time)
 	if (!IsInViewport()) {
 		_dialogueText->SetText(text);
 		AddToViewport();
-		PlayAnimation(_blendIn, 0.f, 1, EUMGSequencePlayMode::Forward, 1.f);
-		PlayAnimation(_blendOut, time - 0.8f, 1, EUMGSequencePlayMode::Forward, 1.f);
+
+		if (IsInViewport() && IsValid(_blendIn)) {
+			PlayAnimation(_blendIn);
+		}
+
+		FTimerHandle animationTimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(animationTimerHandle, [this]() {
+			if (IsValid(_blendOut)) {
+				PlayAnimation(_blendOut);
+			}
+		}, time - 0.75f, false);
 
 		FTimerHandle dialogueTimerHandle;
 		GetWorld()->GetTimerManager().SetTimer(dialogueTimerHandle, [this]() {

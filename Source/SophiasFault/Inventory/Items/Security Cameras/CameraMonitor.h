@@ -26,6 +26,10 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Camera Monitor")
 	float _screenBrightness;
+	UPROPERTY(EditAnywhere, Category = "Camera Monitor")
+	FText _cameraMonitorDialogue;
+	bool _bDialoguePlayed;
+
 	int _screenWidth, _screenHeight;
 	int _currentCameraIndex;
 	APlayerController* _playerController;

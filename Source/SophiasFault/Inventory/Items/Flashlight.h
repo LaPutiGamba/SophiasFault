@@ -4,26 +4,28 @@
 #include "../Item.h"
 #include "../../Interfaces/PickUpInterface.h"
 #include "EnhancedInputComponent.h"
-#include "Tickable.h"
 #include "Flashlight.generated.h"
 
 enum FLASHLIGHT_STATE { ST_LIGHTON, ST_LIGHTOFF, ST_NEEDRECHARGE };
 
 UCLASS()
-class SOPHIASFAULT_API AFlashlight : public AItem, public FTickableGameObject, public IPickUpInterface
+class SOPHIASFAULT_API AFlashlight : public AItem, public IPickUpInterface
 {
 	GENERATED_BODY()
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "Movement/View variables", meta = (ClampMin = "0.01", ClampMax = "360"))
+	UPROPERTY(EditAnywhere, Category = "Movement/View variables", meta = (ClampMin = "0.01", ClampMax = "1000"))
 	float _flashlightMaxDuration;
 
 	class USpotLightComponent* _flashlight;
-	bool _flashlightOn;
-	bool _rechargingFlashlight;
+	bool _bIsRechargingFlashlight;
 	float _flashlightTimer;
 	FLASHLIGHT_STATE _flashlightState;
-	FTimerHandle _intensityTimer;
+
+	float _flashlightIntensity;
+	float _flashlightIntensityMax;
+	FTimerHandle _intensityTimerHandle;
+
 	UPROPERTY(EditAnywhere, Category = "Materials")
 	UMaterial* _flashlightMaterial;
 	UPROPERTY(EditAnywhere, Category = "Materials")
@@ -38,20 +40,17 @@ protected:
 	FInputBindingHandle* _rechargeFlashlightBindingHandle;
 
 	class APlayerController* _playerController;
+	class ASophia* _sophia;
 
 public:
+	bool _bTurnedOn;
+
 	AFlashlight();
 
 	virtual void BeginPlay();
-
-	virtual ETickableTickType GetTickableTickType() const override { return ETickableTickType::Always; }
-	virtual TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(AFlashlight, STATGROUP_Tickables); }
-	virtual bool IsTickableWhenPaused() const {	return true; }
-	virtual bool IsTickableInEditor() const { return false;	}
 	virtual void Tick(float deltaTime) override;
 
-	void ToggleFlashlightOn() { _flashlightOn = !_flashlightOn; }
-	void ToggleRechargingFlashlight() { _rechargingFlashlight = !_rechargingFlashlight; }
+	void ToggleFlashlightOn();
 
 	void UseFlashlight(const FInputActionValue& value);
 	void RechargeFlashlight(const FInputActionValue& value);

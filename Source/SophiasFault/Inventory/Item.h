@@ -59,4 +59,5 @@ public:
 	class UCameraComponent* _playerCamera;
 
 	bool _bNoSwitchableItem;
+	float _noSwitchableItemSpeed;
 };
