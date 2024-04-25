@@ -39,6 +39,9 @@ protected:
 	class UInputAction* _rechargeFlashlightAction;
 	FInputBindingHandle* _rechargeFlashlightBindingHandle;
 
+	UPROPERTY(EditAnywhere, Category = "Audio")
+	class USoundBase* _rechargeFlashlightSound;
+
 	class APlayerController* _playerController;
 	class ASophia* _sophia;
 
@@ -54,6 +57,8 @@ public:
 
 	void UseFlashlight(const FInputActionValue& value);
 	void RechargeFlashlight(const FInputActionValue& value);
+	UFUNCTION()
+	void FinishRechargeFlashlight();
 
 	virtual void PickUpItem(class AItem* item) override;
 	virtual void DropItem(class AItem* item) override;

@@ -117,6 +117,9 @@ void AFlashlight::UseFlashlight(const FInputActionValue& value)
 	if (_owningInventory->_currentHandItem != nullptr) {
 		if (_owningInventory->_currentHandItem->IsA<AFlashlight>()) {
 			ToggleFlashlightOn();
+
+			if (_metaSound != nullptr && _soundComponent != nullptr)
+				_soundComponent->SetSound(_metaSound);
 			_soundComponent->SetIntParameter("Flashlight State", _bTurnedOn ? 0 : 1);
 			_soundComponent->Play();
 		}
@@ -125,18 +128,28 @@ void AFlashlight::UseFlashlight(const FInputActionValue& value)
 
 void AFlashlight::RechargeFlashlight(const FInputActionValue& value)
 {
-	bool boolValue = value.Get<bool>();
-
 	if (_owningInventory->_currentHandItem != nullptr) {
 		if (_owningInventory->_currentHandItem->IsA<AFlashlight>()) {
-			if (boolValue)
-				_bNoSwitchableItem = true;
-			else
-				_bNoSwitchableItem = false;
-
+			_bNoSwitchableItem = true;
 			_bIsRechargingFlashlight = true;
-			_soundComponent->SetIntParameter("Flashlight State", 2);
+
+			if (_rechargeFlashlightSound != nullptr && _soundComponent != nullptr) {
+				_soundComponent->SetSound(_rechargeFlashlightSound);
+				_soundComponent->SetBoolParameter("Is Pressing R", true);
+			}
 			_soundComponent->Play();
+		}
+	}
+}
+
+void AFlashlight::FinishRechargeFlashlight()
+{
+	if (_owningInventory->_currentHandItem != nullptr) {
+		if (_owningInventory->_currentHandItem->IsA<AFlashlight>()) {
+			_bNoSwitchableItem = false;
+			_bIsRechargingFlashlight = false;
+			_soundComponent->SetBoolParameter("Is Pressing R", false);
+			_soundComponent->Stop();
 		}
 	}
 }
@@ -153,7 +166,9 @@ void AFlashlight::PickUpItem(AItem* item)
 
 		if (UEnhancedInputComponent* enhancedInputComponent = Cast<UEnhancedInputComponent>(_playerController->InputComponent)) {
 			_flashlightBindingHandle = &enhancedInputComponent->BindAction(_flashlightAction, ETriggerEvent::Triggered, this, &AFlashlight::UseFlashlight);
-			_rechargeFlashlightBindingHandle = &enhancedInputComponent->BindAction(_rechargeFlashlightAction, ETriggerEvent::Triggered, this, &AFlashlight::RechargeFlashlight);
+			_rechargeFlashlightBindingHandle = &enhancedInputComponent->BindAction(_rechargeFlashlightAction, ETriggerEvent::Started, this, &AFlashlight::RechargeFlashlight);
+			_rechargeFlashlightBindingHandle = &enhancedInputComponent->BindAction(_rechargeFlashlightAction, ETriggerEvent::Triggered, this, &AFlashlight::FinishRechargeFlashlight);
+			_rechargeFlashlightBindingHandle = &enhancedInputComponent->BindAction(_rechargeFlashlightAction, ETriggerEvent::Canceled, this, &AFlashlight::FinishRechargeFlashlight);
 		}
 	}
 }

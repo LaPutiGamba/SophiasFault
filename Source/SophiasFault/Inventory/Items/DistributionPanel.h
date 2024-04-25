@@ -13,8 +13,6 @@ class SOPHIASFAULT_API ADistributionPanel : public AItem, public IInteractiveInt
 public:
 	ADistributionPanel();
 
-	virtual void BeginPlay() override;
-
 	bool _bPoweredOnce;
 
 	UPROPERTY(EditAnywhere, Category = "Distribution Panel")
