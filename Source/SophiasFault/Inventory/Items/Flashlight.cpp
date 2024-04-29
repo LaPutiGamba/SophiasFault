@@ -6,6 +6,7 @@
 #include "../../Core/GMS_MyGameStateBase.h"
 #include "../../Macros.h"
 #include "../KeysHUDWidget.h"
+#include "Curves/CurveFloat.h"
 
 AFlashlight::AFlashlight()
 {
@@ -20,6 +21,8 @@ AFlashlight::AFlashlight()
 	_flashlightTimer = 0.f;
 	_flashlightMaxDuration = 600.f;
 	_flashlightState = ST_LIGHTOFF;
+
+	_curveFloat = CreateDefaultSubobject<UCurveFloat>(TEXT("CurveFloat"));
 }
 
 void AFlashlight::BeginPlay()
@@ -36,6 +39,19 @@ void AFlashlight::BeginPlay()
 
     if (_flashlight != nullptr)
         _flashlight->ToggleVisibility(false);
+
+	if (_curveFloat) {
+		_curveFloat->FloatCurve.UpdateOrAddKey(0.f, 0.f);
+		_curveFloat->FloatCurve.UpdateOrAddKey(5.f, 1.f);
+
+		FRichCurve& curveComponentRotation = _curveFloat->FloatCurve;
+		for (auto& key : curveComponentRotation.Keys) {
+			key.InterpMode = ERichCurveInterpMode::RCIM_Cubic;
+		}
+
+		_timelineCallback.BindUFunction(this, FName("ControlCrankHandle"));
+		_timelineComponent->AddInterpFloat(_curveFloat, _timelineCallback);
+	}
 }
 
 void AFlashlight::Tick(float deltaTime)
@@ -126,6 +142,15 @@ void AFlashlight::UseFlashlight(const FInputActionValue& value)
 	}
 }
 
+void AFlashlight::ControlCrankHandle(float value)
+{
+	_timelineValue = _timelineComponent->GetPlaybackPosition();
+	_curveFloatValue = _curveFloat->GetFloatValue(_timelineValue);
+
+	_owningInventory->_flashlightCrankComponent->AddLocalRotation(FRotator(-2.f, 0.f, 0.f));
+	_owningInventory->_flashlightCrankHandleComponent->AddLocalRotation(FRotator(2.f, 0.f, 0.f));
+}
+
 void AFlashlight::RechargeFlashlight(const FInputActionValue& value)
 {
 	if (_owningInventory->_currentHandItem != nullptr) {
@@ -138,6 +163,7 @@ void AFlashlight::RechargeFlashlight(const FInputActionValue& value)
 				_soundComponent->SetBoolParameter("Is Pressing R", true);
 			}
 			_soundComponent->Play();
+			_timelineComponent->PlayFromStart();
 		}
 	}
 }
@@ -150,6 +176,7 @@ void AFlashlight::FinishRechargeFlashlight()
 			_bIsRechargingFlashlight = false;
 			_soundComponent->SetBoolParameter("Is Pressing R", false);
 			_soundComponent->Stop();
+			_timelineComponent->Stop();
 		}
 	}
 }

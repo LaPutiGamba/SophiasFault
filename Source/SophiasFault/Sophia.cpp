@@ -2,6 +2,7 @@
 #include "Macros.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Curves/CurveFloat.h"
 #include "Core/GMS_MyGameStateBase.h"
 #include "Inventory/InventoryComponent.h"
 #include "Inventory/InventoryWidget.h"
@@ -65,7 +66,9 @@ ASophia::ASophia()
 	_cameraComponent->bUsePawnControlRotation = false;
 
 	// Init of STAMINA variables
-	_bRunningOrCrouching = false;
+	_bIsRunning = false;
+	_bIsCrouching = false;
+	_bCheckCrouchingUntilNot = false;
 	_staminaTimer = 0.f;
 	_staminaMax = 5.f;
 	_staminaStatus = ST_IDLE;
@@ -75,11 +78,39 @@ ASophia::ASophia()
 	_holdingComponent->SetRelativeLocation(FVector(50.f, 25.f, -12.f));
 	_holdingComponent->SetupAttachment(_cameraComponent);
 
+	_flashlightCrankComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("FlashlightCrankComponent"));
+	_flashlightCrankComponent->SetRelativeLocation(FVector(-0.4f, -8.5f, 0.f));
+	_flashlightCrankComponent->SetupAttachment(_holdingComponent);
+
+	_flashlightCrankHandleComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("FlashlightCrankHandleComponent"));
+	_flashlightCrankHandleComponent->SetRelativeLocation(FVector(-70.f, -7.2f, 0.f));
+	_flashlightCrankHandleComponent->SetRelativeRotation(FRotator(0.f, -2.5f, 0.f));
+	_flashlightCrankHandleComponent->SetupAttachment(_flashlightCrankComponent);
+
 	_flashlightComponent = CreateDefaultSubobject<USpotLightComponent>(TEXT("FlashlightComponent"));
 	_flashlightComponent->SetRelativeLocation(FVector(58.f, 24.5f, -20.f));
 	_flashlightComponent->SetupAttachment(_cameraComponent);
 
 	_bCanMove = true;
+
+	// Init of TIMELINE variables
+	_timelineComponent = CreateDefaultSubobject<UTimelineComponent>(TEXT("TimelineComponent"));
+	_curveFloat = CreateDefaultSubobject<UCurveFloat>(TEXT("CurveFloat"));
+
+	// Init of AUDIO variables
+	_footstepsSoundComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("Footsteps Sound Component"));
+	_footstepsSoundComponent->bAutoActivate = false;
+	_footstepsSoundComponent->SetupAttachment(RootComponent);
+	_footstepsSoundComponent->SetRelativeLocation(FVector(0.f, 0.0f, -34.0f));
+
+	_breathSoundComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("Breath Sound Component"));
+	_breathSoundComponent->bAutoActivate = false;
+	_breathSoundComponent->SetupAttachment(RootComponent);
+	_breathSoundComponent->SetRelativeLocation(FVector(0.f, 0.0f, 34.0f));
+
+	_footstepsSounds = nullptr;
+	_breathSounds = nullptr;
+	_bBreathPlayed = true;
 }
 
 void ASophia::BeginPlay()
@@ -98,6 +129,27 @@ void ASophia::BeginPlay()
 	_inventory->_onInventoryUpdated.AddDynamic(_inventoryHUD, &UInventoryWidget::UpdateInventory);
 
 	_cameraLocation = _springArmComponent->GetRelativeLocation();
+
+	// Timeline
+	if (_curveFloat) {
+		_curveFloat->FloatCurve.UpdateOrAddKey(0.f, 0.f);
+		_curveFloat->FloatCurve.UpdateOrAddKey(1.f, 1.f);
+
+		FRichCurve& curveFloatKeys = _curveFloat->FloatCurve;
+		for (auto& key : curveFloatKeys.Keys) {
+			key.InterpMode = ERichCurveInterpMode::RCIM_Cubic;
+		}
+
+		_timelineCallback.BindUFunction(this, FName("CrouchingTimeline"));
+
+		_timelineComponent->AddInterpFloat(_curveFloat, _timelineCallback);
+	}
+
+	// Audio
+	if (_footstepsSounds != nullptr && _footstepsSoundComponent != nullptr)
+		_footstepsSoundComponent->SetSound(_footstepsSounds);
+	if (_breathSounds != nullptr && _breathSoundComponent != nullptr)
+		_breathSoundComponent->SetSound(_breathSounds);
 }
 
 void ASophia::Tick(float deltaTime)
@@ -106,42 +158,32 @@ void ASophia::Tick(float deltaTime)
 
 	// STAMINA
 	switch (_staminaStatus) {
-	/*
-		If the player is running, depending if it's on chase or not, will increase or decrease her speed. That will simulate
-		the player running or like crouching. Also, it has a maximum amount of time to run or crouch, so it will increase
-		the _staminaTimer and if it reach the max, it will change to the EXHAUSTED status.
-	*/
 	case ST_RUNNING:
-		if (_bRunningOrCrouching) {
-			if (_myGameState->GetOnChase()) {
-				_speed = .6f;
-
-				if (_staminaTimer < _staminaMax) {
-					_staminaTimer += deltaTime;
-				} else {
-					_staminaStatus = ST_EXHAUSTED;
-					_speed = 0.3f;
-				}
-			} else {
-				_speed = 0.15f;
-			}
-		} else {
-			_staminaStatus = ST_IDLE;
-			_speed = 0.3f;
-		}
-
 		if (_inventory->_currentHandItem) {
 			if (_inventory->_currentHandItem->_bNoSwitchableItem)
 				_staminaStatus = ST_IDLE;
 		}
+
+		if (_bIsRunning) {
+			_speed = 0.5f;
+
+			if (_staminaTimer < _staminaMax) {
+				_staminaTimer += deltaTime;
+			} else {
+				_staminaStatus = ST_EXHAUSTED;
+				_speed = 0.3f;
+				_breathSoundComponent->SetIntParameter("Breath Sound", 0);
+				_breathSoundComponent->Play();
+			}
+		} else if (_bIsCrouching) {
+			_speed = 0.15f;
+		} else {
+			_staminaStatus = ST_IDLE;
+			_speed = 0.3f;
+		}
 		break;
-	/*
-		If the player is exhausted, it will start decreasing the _staminaTimer. If it reach half of the maximum stamina,
-		and the player still pressing the running or crouching button, it will start running again until the half of the
-		max stamina it's spent. If the person doesn't press the running or crouching button, it will change to IDLE status.
-	*/
 	case ST_EXHAUSTED:
-		if (_bRunningOrCrouching && _staminaTimer < (_staminaMax / 2))
+		if (_bIsRunning && _staminaTimer < (_staminaMax / 2))
 			_staminaStatus = ST_RUNNING;
 
 		_staminaTimer -= deltaTime;
@@ -151,46 +193,71 @@ void ASophia::Tick(float deltaTime)
 				_staminaStatus = ST_IDLE;
 		}
 
-		if (_staminaTimer < 0.f && !_bRunningOrCrouching)
+		if (_staminaTimer < 0.f && !_bIsRunning)
 			_staminaStatus = ST_IDLE;
 		break;
-	/*
-		If the player it's on the IDLE status, it the running or crouching button is pressed it will change to RUNNING status.
-	*/
 	case ST_IDLE:
 		if (_inventory->_currentHandItem) {
-			if (_inventory->_currentHandItem->_bNoSwitchableItem)
+			if (_inventory->_currentHandItem->_bNoSwitchableItem) {
 				_speed = _inventory->_currentHandItem->_noSwitchableItemSpeed;
-			else
-				_speed = 0.3f;
+			} else {
+				if (_bIsRunning) 
+					_staminaStatus = ST_RUNNING;
+				else 
+					_speed = 0.3f;
+			}
 		} else {
-			_speed = 0.3f;
-		}
-
-		if (_inventory->_currentHandItem) {
-			if (_bRunningOrCrouching && !_inventory->_currentHandItem->_bNoSwitchableItem)
+			if (_bIsRunning)
 				_staminaStatus = ST_RUNNING;
-		} else if (_bRunningOrCrouching) {
-			_staminaStatus = ST_RUNNING;
+			else 
+				_speed = 0.3f;
 		}
 		break;
 	default:
 		break;
 	}
 
-	// CAMERA SHAKE
-	if (GetVelocity().SizeSquared() <= 0.1f)
+	// CAMERA SHAKE AND FOOTSTEPS
+	if (GetVelocity().SizeSquared() <= 0.1f) {
 		_playerController->ClientStartCameraShake(_shakeIdle, 1.f);
-	else if (_speed == 0.3f) 
+		
+		if (_footstepsSoundComponent->IsPlaying())
+			_footstepsSoundComponent->Stop();
+	} else if (_speed == 0.3f) {
 		_playerController->ClientStartCameraShake(_shakeWalk, 1.f);
-	else if (_speed == 0.6f) 
+
+		if (!_footstepsSoundComponent->IsPlaying()) {
+			_footstepsSoundComponent->SetFloatParameter("InputBPM", 100.f);
+			_footstepsSoundComponent->Play();
+		}
+	} else if (_speed == 0.5f) {
 		_playerController->ClientStartCameraShake(_shakeRun, 1.f);
+
+		if (!_footstepsSoundComponent->IsPlaying()) {
+			_footstepsSoundComponent->SetFloatParameter("InputBPM", 140.f);
+			_footstepsSoundComponent->Play();
+		}
+	}
 
 	// Blend time of the camera (ASohpia::BlendWithCamera)
 	if (_myGameState->_onBlendTime > 0.001f)
 		_myGameState->_onBlendTime -= deltaTime;
 	if (_myGameState->_onBlendTime < 0.001f)
 		_myGameState->_onBlendTime = 0.001f;
+
+	// CROUCHING
+	if (_bCheckCrouchingUntilNot) {
+		FHitResult hit;
+		FVector start = GetCapsuleComponent()->GetComponentLocation();
+		FVector end = GetCapsuleComponent()->GetComponentRotation().Vector().UpVector * 200.f;
+		end += start;
+
+		if (!GetWorld()->LineTraceSingleByChannel(hit, start, end, ECC_Visibility, FComponentQueryParams::DefaultQueryParam, FCollisionResponseParams::DefaultResponseParam)) {
+			_timelineComponent->Reverse();
+			_bIsCrouching = false;
+			_bCheckCrouchingUntilNot = false;
+		}
+	}
 }
 
 void ASophia::SetupPlayerInputComponent(UInputComponent *playerInputComponent)
@@ -201,7 +268,8 @@ void ASophia::SetupPlayerInputComponent(UInputComponent *playerInputComponent)
 		// Movement
 		EnhancedInputComponent->BindAction(_moveAction, ETriggerEvent::Triggered, this, &ASophia::Move);
 		EnhancedInputComponent->BindAction(_lookAction, ETriggerEvent::Triggered, this, &ASophia::Look);
-		EnhancedInputComponent->BindAction(_runOrCrouchAction, ETriggerEvent::Triggered, this, &ASophia::RunOrCrouch);
+		EnhancedInputComponent->BindAction(_runAction, ETriggerEvent::Triggered, this, &ASophia::Running);
+		EnhancedInputComponent->BindAction(_crouchAction, ETriggerEvent::Triggered, this, &ASophia::Crouching);
 		// Items slots
 		EnhancedInputComponent->BindAction(_changeItemMouseAction, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 10);
 		EnhancedInputComponent->BindAction(_changeHandItem1Action, ETriggerEvent::Triggered, _inventory, &UInventoryComponent::ChangeCurrentHandItem, 0);
@@ -252,37 +320,69 @@ void ASophia::Look(const FInputActionValue& value)
 	}
 }
 
-void ASophia::RunOrCrouch(const FInputActionValue &value)
+void ASophia::Running(const FInputActionValue &value)
 {
-	// Activate the running or crouching status
-	_bRunningOrCrouching = value.Get<bool>();
+	// Activate the running status
+	if (_bIsCrouching)
+		_bIsRunning = false;
+	else 
+		_bIsRunning = value.Get<bool>();
+}
 
-	if (!_myGameState->GetOnChase()) {
-		GetCapsuleComponent()->SetRelativeScale3D(FVector(1.f, 1.f, _bRunningOrCrouching ? 0.75f : 1.f));
+void ASophia::Crouching(const FInputActionValue& value)
+{
+	// Activate the crouching status
+	bool tempValue = value.Get<bool>();
+
+	if (tempValue) {
+		_timelineComponent->Play();
+		_bIsCrouching = true;
+	} else {
+		FHitResult hit;
+		FVector start = GetCapsuleComponent()->GetComponentLocation();
+		FVector end = GetCapsuleComponent()->GetComponentRotation().Vector().UpVector * 200.f;
+		end += start;
+
+		if (GetWorld()->LineTraceSingleByChannel(hit, start, end, ECC_Visibility, FComponentQueryParams::DefaultQueryParam, FCollisionResponseParams::DefaultResponseParam)) {
+			_timelineComponent->Play();
+			_bIsCrouching = true;
+			_bCheckCrouchingUntilNot = true;
+		} else {
+			_timelineComponent->Reverse();
+			_bIsCrouching = false;
+		}
 	}
+}
+
+void ASophia::CrouchingTimeline(float value)
+{
+	_timelineValue = _timelineComponent->GetPlaybackPosition();
+	_curveFloatValue = _curveFloat->GetFloatValue(_timelineValue);
+
+	GetCapsuleComponent()->SetCapsuleHalfHeight(FMath::Lerp(88.f, 54.f, _curveFloatValue));
 }
 
 void ASophia::Inventory(const FInputActionValue& value)
 {
-	if (IsLocallyControlled() && _inventoryHUDClass/* && !_inventory->_currentHandItem->_bNoSwitchableItem*/) {
-		if (!_bInventoryOpen) {
-			// Show the inventory 
-			_inventoryHUD->AddToPlayerScreen();
-			_playerController->bShowMouseCursor = true;
-			_playerController->bEnableClickEvents = true;
-			_playerController->bEnableMouseOverEvents = true;
+	//if (IsLocallyControlled() && _inventoryHUDClass) {
+	//	if (!_bInventoryOpen) {
+	//		// Show the inventory 
+	//		_inventoryHUD->AddToPlayerScreen();
+	//		_playerController->bShowMouseCursor = true;
+	//		_playerController->bEnableClickEvents = true;
+	//		_playerController->bEnableMouseOverEvents = true;
 
-			_bInventoryOpen = true;
-		} else {
-			// Close the inventory widget
-			_inventoryHUD->RemoveFromParent();
-			_playerController->bShowMouseCursor = false;
-			_playerController->bEnableClickEvents = false;
-			_playerController->bEnableMouseOverEvents = false;
+	//		_bInventoryOpen = true;
+	//	} else {
+	//		// Close the inventory widget
+	//		_inventoryHUD->RemoveFromParent();
+	//		_playerController->bShowMouseCursor = false;
+	//		_playerController->bEnableClickEvents = false;
+	//		_playerController->bEnableMouseOverEvents = false;
 
-			_bInventoryOpen = false;
-		}
-	}
+	//		_bInventoryOpen = false;
+	//	}
+	//}
 }
 
 void ASophia::OnAction(const FInputActionValue &value)
@@ -292,6 +392,9 @@ void ASophia::OnAction(const FInputActionValue &value)
 			onActionItem->OnAction();
 		}
 	}
+
+	if (_inventory->_bInspectingPressed && _inventory->_bHoldingItem)
+		return;
 
 	if (_inventory->_currentChangeCameraItem) {
 		if (_inventory->_currentChangeCameraItem->GetClass()->ImplementsInterface(UActorBlendInterface::StaticClass())) {

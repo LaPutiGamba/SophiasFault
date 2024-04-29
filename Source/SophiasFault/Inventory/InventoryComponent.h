@@ -18,8 +18,11 @@ public:
 	class APlayerController* _playerController;
 	class UCameraComponent* _cameraComponent;
 	class UStaticMeshComponent* _holdingComponent;
+	class UStaticMeshComponent* _flashlightCrankComponent;
+	class UStaticMeshComponent* _flashlightCrankHandleComponent;
 	class USpotLightComponent* _flashlightComponent;
 	class AGMS_MyGameStateBase* _myGameState;
+	class ASophia* _sophia;
 
 	float _pitchMax;
 	float _pitchMin;

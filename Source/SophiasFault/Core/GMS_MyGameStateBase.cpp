@@ -14,7 +14,6 @@
 
 AGMS_MyGameStateBase::AGMS_MyGameStateBase()
 {
-	_bOnChase = false;
 	_bPianoPuzzleSolved = false;
 	_bStairPositioned = true;
 	_onBlendTime = 0.f;
@@ -65,8 +64,6 @@ AGMS_MyGameStateBase::AGMS_MyGameStateBase()
 void AGMS_MyGameStateBase::BeginPlay() 
 {
 	Super::BeginPlay();
-
-	_bOnChase = false;
 	
 	if (APlayerController* playerController = GetWorld()->GetFirstPlayerController()) {
 		if (_dialogueWidgetClass && _noteWidgetClass) {

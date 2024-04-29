@@ -35,8 +35,8 @@ public:
 
 	FOnTimelineVector _timelineCallback;
 
-	void SetMovementAndCollisions(bool bState);
 	void SetInitialKeys(float time);
+	void SetGameState(bool bState);
 
 	UFUNCTION()
 	void ControlLadderAnim(float value);

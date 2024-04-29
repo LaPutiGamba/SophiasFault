@@ -5,6 +5,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h" 
 #include "../../Core/GMS_MyGameStateBase.h"
+#include "EnhancedInputSubsystems.h" 
 #include "Blueprint/UserWidget.h" 
 #include "../../Sophia.h"
 #include "../../Macros.h"
@@ -88,16 +89,6 @@ void ALadder::BeginPlay()
 	}
 }
 
-void ALadder::SetMovementAndCollisions(bool bState)
-{
-	_myGameState->SetOnChase(!bState);
-	_sophia->GetCapsuleComponent()->SetCollisionEnabled(bState ? ECollisionEnabled::QueryAndPhysics : ECollisionEnabled::NoCollision);
-	_sophia->GetCapsuleComponent()->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));
-
-	_playerController->SetIgnoreLookInput(!bState);
-	_playerController->SetIgnoreMoveInput(!bState);
-}
-
 void ALadder::SetInitialKeys(float time)
 {
 	// Add initial keys
@@ -134,25 +125,36 @@ void ALadder::ControlLadderAnim(float value)
 
 void ALadder::FinishAnim()
 {
-	SetMovementAndCollisions(true);
 	_myGameState->_hudWidget->SetVisibility(ESlateVisibility::Visible);
+	SetGameState(true);
+}
+
+void ALadder::SetGameState(bool bState)
+{
+	if (UEnhancedInputLocalPlayerSubsystem* subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(_playerController->GetLocalPlayer())) {
+		if (bState) 
+			subsystem->AddMappingContext(_sophia->GetMainMappingContext(), 0);
+		else 
+			subsystem->RemoveMappingContext(_sophia->GetMainMappingContext());
+	}
+
+	_sophia->GetCapsuleComponent()->SetCollisionEnabled(bState ? ECollisionEnabled::QueryAndPhysics : ECollisionEnabled::NoCollision);
+	_sophia->GetCapsuleComponent()->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));
+
+	_myGameState->_hudWidget->SetVisibility(bState ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
 }
 
 void ALadder::UseInteraction(AItem* item)
 {
-	SetMovementAndCollisions(false);
+	SetGameState(false);
 
 	if (_bIsUp && !_timelineComponent->IsPlaying()) {
-		_myGameState->_hudWidget->SetVisibility(ESlateVisibility::Hidden);
-
 		SetInitialKeys(0.f);
 		_bIsUp = false;
 			
 		_curveVectorRotation->FloatCurves[2].UpdateOrAddKey(0.f, _sophia->GetActorRotation().Yaw);
 		_timelineComponent->PlayFromStart();
 	} else if (!_bIsUp && !_timelineComponent->IsPlaying()) {
-		_myGameState->_hudWidget->SetVisibility(ESlateVisibility::Hidden);
-
 		SetInitialKeys(10.7f);
 		_bIsUp = true;
 

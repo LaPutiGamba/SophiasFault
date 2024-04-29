@@ -42,6 +42,14 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Audio")
 	class USoundBase* _rechargeFlashlightSound;
 
+	UPROPERTY(EditAnywhere, Category = "Timeline")
+	class UCurveFloat* _curveFloat;
+
+	FOnTimelineFloat _timelineCallback;
+
+	float _timelineValue;
+	float _curveFloatValue;
+
 	class APlayerController* _playerController;
 	class ASophia* _sophia;
 
@@ -62,4 +70,7 @@ public:
 
 	virtual void PickUpItem(class AItem* item) override;
 	virtual void DropItem(class AItem* item) override;
+
+	UFUNCTION()
+	void ControlCrankHandle(float value);
 };

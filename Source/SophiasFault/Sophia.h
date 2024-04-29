@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Components/TimelineComponent.h"
 #include "InputActionValue.h"
 #include "Sophia.generated.h"
 
@@ -24,6 +25,9 @@ protected:
 	/* ----- Mapping Contexts ----- */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputMappingContext* _mainMappingContext;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputMappingContext* _inspectMappingContext;
 	/* ---------------------------- */
 
 
@@ -59,18 +63,31 @@ protected:
 	/* ----------------- */
 
 
-	/* ----- Run or Crouch and Stamina ----- */
+	/* ----- Run and Crouch and Stamina ----- */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
-	class UInputAction* _runOrCrouchAction;
+	class UInputAction* _runAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* _crouchAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement/View variables", meta = (ClampMin = "0.01", ClampMax = "10"))
 	float _staminaMax;
 
-	bool _bRunningOrCrouching;
+	bool _bIsRunning;
+	bool _bIsCrouching;
+	bool _bCheckCrouchingUntilNot;
 	float _staminaTimer;
 	STAMINA_STATUS _staminaStatus;
 	/* ------------------------------------- */
 
+	/* ----- Crouching timeline ----- */
+	class UTimelineComponent* _timelineComponent;
+	FOnTimelineFloat _timelineCallback;
+
+	class UCurveFloat* _curveFloat;
+
+	float _timelineValue;
+	float _curveFloatValue;
+	/* ------------------------------ */
 
 	/* ----- Input Actions ----- */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
@@ -135,12 +152,29 @@ protected:
 	/* ----- Items ----- */
 	UPROPERTY(EditAnywhere, Category = "Camera")
 	class UStaticMeshComponent* _holdingComponent;
+	UPROPERTY(EditAnywhere, Category = "Camera")
+	class UStaticMeshComponent* _flashlightCrankComponent;
+	UPROPERTY(EditAnywhere, Category = "Camera")
+	class UStaticMeshComponent* _flashlightCrankHandleComponent;
 
 	UPROPERTY(EditAnywhere, Category = "Camera")
 	class USpotLightComponent* _flashlightComponent;
 
 	bool _bCanMove;
 	/* ----------------- */
+
+
+	/* -------- Audio -------- */
+	UPROPERTY(EditAnywhere, Category = "Audio")
+	class USoundBase* _footstepsSounds;
+	UPROPERTY(EditAnywhere, Category = "Audio")
+	class USoundBase* _breathSounds;
+
+	class UAudioComponent* _footstepsSoundComponent;
+	class UAudioComponent* _breathSoundComponent;
+
+	bool _bBreathPlayed;
+	/* ----------------------- */
 
 /************* FUNCTIONS *************/
 public:
@@ -169,6 +203,12 @@ public:
 	// Get the holding component
 	class UStaticMeshComponent* GetHoldingComponent() { return _holdingComponent; }
 
+	// Get the flashlight crank component
+	class UStaticMeshComponent* GetFlashlightCrankComponent() { return _flashlightCrankComponent; }
+
+	// Get the flashlight crank handle component
+	class UStaticMeshComponent* GetFlashlightCrankHandleComponent() { return _flashlightCrankHandleComponent; }
+
 	// Get the flashlight component
 	class USpotLightComponent* GetFlashlightComponent() { return _flashlightComponent; }
 
@@ -176,6 +216,9 @@ public:
 	void SetSpeed(float speed) { _speed = speed; }
 
 	void ToggleMovement(bool& bInspecting);
+
+	UInputMappingContext* GetMainMappingContext() { return _mainMappingContext; }
+	UInputMappingContext* GetInspectMappingContext() { return _inspectMappingContext; }
 
 protected:
 	// Called when the game starts or when spawned
@@ -185,7 +228,8 @@ protected:
 
 	void Look(const FInputActionValue& value);
 
-	void RunOrCrouch(const FInputActionValue& value);
+	void Running(const FInputActionValue& value);
+	void Crouching(const FInputActionValue& value);
 
 	void Inventory(const FInputActionValue& value);
 
@@ -193,4 +237,8 @@ protected:
 	void OnAction(const FInputActionValue& value);
 
 	void DropItem(const FInputActionValue& value);
+
+	// TIMELINE
+	UFUNCTION()
+	virtual void CrouchingTimeline(float value);
 };

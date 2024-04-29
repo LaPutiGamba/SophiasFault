@@ -41,9 +41,12 @@ void UInventoryComponent::BeginPlay()
     }
 
     _playerController = GetWorld()->GetFirstPlayerController();
-    _cameraComponent = Cast<ASophia>(_playerController->GetPawn())->GetCameraComponent();
-    _holdingComponent = Cast<ASophia>(_playerController->GetPawn())->GetHoldingComponent();
-    _flashlightComponent = Cast<ASophia>(_playerController->GetPawn())->GetFlashlightComponent();
+	_sophia = Cast<ASophia>(_playerController->GetPawn());
+    _cameraComponent = _sophia->GetCameraComponent();
+    _holdingComponent = _sophia->GetHoldingComponent();
+	_flashlightCrankComponent = _sophia->GetFlashlightCrankComponent();
+	_flashlightCrankHandleComponent = _sophia->GetFlashlightCrankHandleComponent();
+    _flashlightComponent = _sophia->GetFlashlightComponent();
 
     if (_playerController->PlayerCameraManager)
         _pitchMax = _playerController->PlayerCameraManager->ViewPitchMax;
@@ -171,7 +174,19 @@ bool UInventoryComponent::AddItem(AItem* item, bool toggleHoldingItem)
     if (toggleHoldingItem)
 		_bHoldingItem = !_bHoldingItem;
     
+    if (_currentHandItem != nullptr) {
+        if (_currentHandItem->IsA(AFlashlight::StaticClass())) {
+            _flashlightCrankComponent->SetVisibility(false);
+            _flashlightCrankHandleComponent->SetVisibility(false);
+        }
+    }
+
     _currentHandItem = item;
+
+	if (_currentHandItem->IsA(AFlashlight::StaticClass())) {
+		_flashlightCrankComponent->SetVisibility(true);
+		_flashlightCrankHandleComponent->SetVisibility(true);
+    } 
 
 	return true;
 }
@@ -185,6 +200,19 @@ bool UInventoryComponent::RemoveItem(AItem* item, bool deleteCurrentHandItem)
 				break;
 			}
 		}
+        
+        // Order the items in the inventory
+		for (int i = 0; i < _capacity; i++) {
+			if (_items[i] == nullptr) {
+				for (int j = i + 1; j < _capacity; j++) {
+					if (_items[j] != nullptr) {
+						_items[i] = _items[j];
+						_items[j] = nullptr;
+						break;
+					}
+				}
+			}
+		}
 
 		_onInventoryUpdated.Broadcast();
 
@@ -194,6 +222,14 @@ bool UInventoryComponent::RemoveItem(AItem* item, bool deleteCurrentHandItem)
             _currentHandItem = nullptr;
             _holdingComponent->SetStaticMesh(nullptr);
         }
+
+		_currentItemSlotIndex = 0;
+		if (_items[_currentItemSlotIndex] != nullptr) {
+			_currentHandItem = _items[_currentItemSlotIndex];
+			_currentHandItem->SetActorHiddenInGame(false);
+			_holdingComponent->SetStaticMesh(_currentHandItem->_meshComponent->GetStaticMesh());
+			_bHoldingItem = true;
+		}
 
 		return true;
 	}
@@ -211,6 +247,11 @@ void UInventoryComponent::ChangeCurrentHandItem(const FInputActionValue& value, 
         _items[_currentItemSlotIndex]->SetActorHiddenInGame(true);
         _currentHandItem->SetActorHiddenInGame(true);
         _holdingComponent->SetStaticMesh(nullptr);
+
+		if (_currentHandItem->IsA(AFlashlight::StaticClass())) {
+			_flashlightCrankComponent->SetVisibility(false);
+			_flashlightCrankHandleComponent->SetVisibility(false);
+		}
     }
 
     // Check if the input is from a number key (0-9)
@@ -241,11 +282,12 @@ void UInventoryComponent::ChangeCurrentHandItem(const FInputActionValue& value, 
         _currentHandItem->SetActorHiddenInGame(false);
         _holdingComponent->SetStaticMesh(_currentHandItem->_meshComponent->GetStaticMesh());
         _bHoldingItem = true;
-    // If the slot is empty, we will set the _currentHandItem to nullptr
-    } else {
-        _currentHandItem = nullptr;
-        _bHoldingItem = false;
-    }
+
+        if (_currentHandItem->IsA(AFlashlight::StaticClass())) {
+			_flashlightCrankComponent->SetVisibility(true);
+			_flashlightCrankHandleComponent->SetVisibility(true);
+        }
+    } 
 }
 
 void UInventoryComponent::InspectItem(const FInputActionValue& value)
@@ -257,8 +299,13 @@ void UInventoryComponent::InspectItem(const FInputActionValue& value)
 
         if (_bInspectingPressed) {
             if (_bHoldingItem) {
+                if (UEnhancedInputLocalPlayerSubsystem* subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(_playerController->GetLocalPlayer())) {
+                    subsystem->RemoveMappingContext(_sophia->GetMainMappingContext());
+                    subsystem->AddMappingContext(_sophia->GetInspectMappingContext(), 0);
+                }
+
+                _sophia->ToggleMovement(_bInspecting);
                 _lastRotation = _playerController->GetPawn()->GetControlRotation();
-                Cast<ASophia>(_playerController->GetPawn())->ToggleMovement(_bInspecting);
                 if (_myGameState->_hudWidget != nullptr) {
                     _myGameState->_hudWidget->RemoveFromParent();
                     _myGameState->_hudWidget = nullptr;
@@ -268,10 +315,15 @@ void UInventoryComponent::InspectItem(const FInputActionValue& value)
             }
         } else {
             if (_bInspecting && _bHoldingItem) {
+                if (UEnhancedInputLocalPlayerSubsystem* subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(_playerController->GetLocalPlayer())) {
+                    subsystem->RemoveMappingContext(_sophia->GetInspectMappingContext());
+                    subsystem->AddMappingContext(_sophia->GetMainMappingContext(), 0);
+                }
+
+                _sophia->ToggleMovement(_bInspecting);
                 _playerController->SetControlRotation(_lastRotation);
                 _playerController->PlayerCameraManager->ViewPitchMax = _pitchMax;
                 _playerController->PlayerCameraManager->ViewPitchMin = _pitchMin;
-                Cast<ASophia>(_playerController->GetPawn())->ToggleMovement(_bInspecting);
                 if (_myGameState->_hudWidget == nullptr) {
                     _myGameState->_hudWidget = CreateWidget<UUserWidget>(_playerController, _myGameState->_hudWidgetClass);
                     _myGameState->_hudWidget->AddToViewport();
