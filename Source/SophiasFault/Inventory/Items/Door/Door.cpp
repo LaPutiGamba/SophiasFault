@@ -76,7 +76,7 @@ void ADoor::UseInteraction(AItem* item)
 
 					_soundComponent->SetIntParameter("Door State", 0);
 					_soundComponent->Play();
-					}, _doorHandle->_animationSequence->GetPlayLength() / 2, false);
+				}, _doorHandle->_animationSequence->GetPlayLength() / 2, false);
 			} else {
 				_timelineComponent->PlayFromStart();
 
