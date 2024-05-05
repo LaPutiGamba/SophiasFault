@@ -38,6 +38,7 @@ public:
 
 	float _timelineValue;
 	float _curveFloatValue;
+	FKeyHandle _keyHandle;
 
 	void BeginPlay() override;
 

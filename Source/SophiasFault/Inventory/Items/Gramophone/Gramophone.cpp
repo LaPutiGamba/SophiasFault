@@ -19,7 +19,7 @@ void AGramophone::BeginPlay()
 	// Timeline
 	if (_curveFloat) {
 		_curveFloat->FloatCurve.UpdateOrAddKey(0.f, 0.f);
-		_curveFloat->FloatCurve.UpdateOrAddKey(15.f, 1.f);
+		_keyHandle = _curveFloat->FloatCurve.UpdateOrAddKey(1.f, 1.f);
 
 		_timelineCallback.BindUFunction(this, FName("ControlGramophone"));
 
@@ -40,6 +40,8 @@ void AGramophone::UseInteraction(AItem* item)
 			secondShapeRot.Roll >= 19.f && secondShapeRot.Roll <= 21.f &&
 			thirdShapeRot.Roll >= 19.f && thirdShapeRot.Roll <= 21.f && !_bReadyState) {
 			
+			_curveFloat->FloatCurve.DeleteKey(_keyHandle);
+			_curveFloat->FloatCurve.UpdateOrAddKey(15.f, 1.f);
 			_timelineComponent->PlayFromStart();
 			if (_metaSound != nullptr) {
 				_soundComponent->SetSound(_metaSound);
@@ -48,6 +50,9 @@ void AGramophone::UseInteraction(AItem* item)
 
 			_bReadyState = true;
 		} else {
+			if (!_bReadyState)
+				_timelineComponent->PlayFromStart();
+
 			if (_interactSound != nullptr) {
 				_soundComponent->SetSound(_interactSound);
 				_soundComponent->Play();
@@ -58,11 +63,23 @@ void AGramophone::UseInteraction(AItem* item)
 
 void AGramophone::ControlGramophone()
 {
-	if (_timelineComponent->GetPlaybackPosition() < 5.f) {
-		_crank->AddActorLocalRotation(FRotator(-3.f, 0.f, 0.f));
-	} else if (_timelineComponent->GetPlaybackPosition() >= 5.f && _timelineComponent->GetPlaybackPosition() < 12.f) {
-		_record->AddActorLocalRotation(FRotator(0.f, 3.f, 0.f));
-	} else if (_timelineComponent->GetPlaybackPosition() >= 12.f) {
-		_cover->AddActorLocalRotation(FRotator(-0.15f, 0.f, 0.f));
+	if (_bReadyState) {
+		if (_timelineComponent->GetPlaybackPosition() < 5.f) {
+			_crank->AddActorLocalRotation(FRotator(-3.f, 0.f, 0.f));
+		} else if (_timelineComponent->GetPlaybackPosition() >= 5.f && _timelineComponent->GetPlaybackPosition() < 12.f) {
+			_record->AddActorLocalRotation(FRotator(0.f, 3.f, 0.f));
+		} else if (_timelineComponent->GetPlaybackPosition() >= 12.f) {
+			_cover->AddActorLocalRotation(FRotator(-0.15f, 0.f, 0.f));
+		}
+	} else {
+		if (_timelineComponent->GetPlaybackPosition() < 0.25f) {
+			_crank->AddActorLocalRotation(FRotator(-1.f, 0.f, 0.f));
+		} else if (_timelineComponent->GetPlaybackPosition() >= 0.25f && _timelineComponent->GetPlaybackPosition() < 0.50f) {
+			_crank->AddActorLocalRotation(FRotator(1.f, 0.f, 0.f));
+		} else if (_timelineComponent->GetPlaybackPosition() >= 0.50f && _timelineComponent->GetPlaybackPosition() < 0.75f) {
+			_crank->AddActorLocalRotation(FRotator(-1.f, 0.f, 0.f));
+		} else if (_timelineComponent->GetPlaybackPosition() >= 0.75f) {
+			_crank->AddActorLocalRotation(FRotator(1.f, 0.f, 0.f));
+		}
 	}
 }
