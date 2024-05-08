@@ -18,5 +18,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Distribution Panel")
 	TArray<class ALight*> _lights;
 
+	UPROPERTY(EditAnywhere, Category = "Distribution Panel")
+	class ACloseDoor* _junkRoomDoor;
+
 	void UseInteraction(class AItem* item) override;
 };

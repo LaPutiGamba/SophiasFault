@@ -4,6 +4,7 @@
 #include "Materials/MaterialInstance.h" 
 #include "../../Sophia.h"
 #include "../../Core/GMS_MyGameStateBase.h"
+#include "../DialogueWidget.h"
 #include "../../Macros.h"
 #include "../KeysHUDWidget.h"
 #include "Curves/CurveFloat.h"
@@ -197,6 +198,9 @@ void AFlashlight::PickUpItem(AItem* item)
 			_rechargeFlashlightBindingHandle = &enhancedInputComponent->BindAction(_rechargeFlashlightAction, ETriggerEvent::Triggered, this, &AFlashlight::FinishRechargeFlashlight);
 			_rechargeFlashlightBindingHandle = &enhancedInputComponent->BindAction(_rechargeFlashlightAction, ETriggerEvent::Canceled, this, &AFlashlight::FinishRechargeFlashlight);
 		}
+	} else {
+		if (_myGameState->_dialogueWidget != nullptr)
+			_myGameState->_dialogueWidget->SetDialogueTextAndShow(FText::FromString("No llego. Necesito buscar algo para subir."), 3.5f);
 	}
 }
 

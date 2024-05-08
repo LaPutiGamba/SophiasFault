@@ -133,7 +133,7 @@ void ASophia::BeginPlay()
 	// Timeline
 	if (_curveFloat) {
 		_curveFloat->FloatCurve.UpdateOrAddKey(0.f, 0.f);
-		_curveFloat->FloatCurve.UpdateOrAddKey(1.f, 1.f);
+		_curveFloat->FloatCurve.UpdateOrAddKey(0.5f, 1.f);
 
 		FRichCurve& curveFloatKeys = _curveFloat->FloatCurve;
 		for (auto& key : curveFloatKeys.Keys) {

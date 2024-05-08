@@ -5,11 +5,11 @@
 #include "../Core/GMS_MyGameStateBase.h"
 #include "../Macros.h"
 
-void UKeysHUDWidget::AddKeyToHorizontalBox(FText key, FText textToShow, bool _bClearChildren, UKeysHUDHelper::EKeysHUDHelperImage image)
+void UKeysHUDWidget::AddKeyToHorizontalBox(FText key, FText textToShow, bool bClearChildren, UKeysHUDHelper::EKeysHUDHelperImage image)
 {
 	if (_keysHorizontalBox) {
-		if (_bClearChildren)
-			_keysHorizontalBox->ClearChildren();
+		_bClearChildren = bClearChildren;
+		ClearChildrenFromBox();
 
 		AGMS_MyGameStateBase* gameState = Cast<AGMS_MyGameStateBase>(GetWorld()->GetGameState());
 
@@ -31,9 +31,11 @@ void UKeysHUDWidget::AddKeyToHorizontalBox(FText key, FText textToShow, bool _bC
 	}
 }
 
-void UKeysHUDWidget::ShowHUD(float time)
+void UKeysHUDWidget::ShowHUD(float time, bool bClearChildren)
 {
 	if (!IsInViewport()) {
+		_bClearChildren = bClearChildren;
+
 		AddToViewport();
 
 		if (IsInViewport() && IsValid(_blendIn)) {
@@ -53,6 +55,8 @@ void UKeysHUDWidget::ShowHUD(float time)
 		FTimerHandle keysHudTimerHandle;
 		GetWorld()->GetTimerManager().SetTimer(keysHudTimerHandle, [this]() {
 			RemoveFromParent();
+
+			ClearChildrenFromBox();
 		}, time, false);
 	}
 }
@@ -77,4 +81,10 @@ void UKeysHUDWidget::HideHUD(float time)
 			AddToViewport();
 		}, time, false);
 	}
+}
+
+void UKeysHUDWidget::ClearChildrenFromBox() 
+{
+	if (_bClearChildren)
+		_keysHorizontalBox->ClearChildren();
 }
