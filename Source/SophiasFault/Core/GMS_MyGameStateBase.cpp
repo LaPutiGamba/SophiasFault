@@ -15,7 +15,7 @@
 AGMS_MyGameStateBase::AGMS_MyGameStateBase()
 {
 	_bPianoPuzzleSolved = false;
-	_bStairPositioned = true;
+	_bStairPositioned = false;
 	_onBlendTime = 0.f;
 		
 	const uint8 PianoResult[] = { 3, 13, 6, 8, 6, 13, 8, 10, 10 };

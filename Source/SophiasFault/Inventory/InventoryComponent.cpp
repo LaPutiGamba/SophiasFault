@@ -11,6 +11,8 @@
 #include "../Interfaces/ActorBlendInterface.h"
 #include "../Core/GMS_MyGameStateBase.h"
 #include "Blueprint/UserWidget.h"
+#include "Items/Notes.h"
+#include "KeysHUDWidget.h"
 #include "../Sophia.h"
 #include "../Macros.h"
 
@@ -30,6 +32,14 @@ UInventoryComponent::UInventoryComponent()
 	_currentHandItem = nullptr;
 	_cameraComponent = nullptr;
 	_holdingComponent = nullptr;
+
+    ConstructorHelpers::FClassFinder<UUserWidget> inventoryFinderClass(TEXT("/Game/Items/Widgets/WBP_InventoryBackground"));
+    if (inventoryFinderClass.Succeeded())
+        _inventoryWidgetClass = inventoryFinderClass.Class;
+    else
+        _inventoryWidgetClass = nullptr;
+
+    _bShowNoteHUDOnce = false;
 }
 
 void UInventoryComponent::BeginPlay()
@@ -54,6 +64,14 @@ void UInventoryComponent::BeginPlay()
         _pitchMin = _playerController->PlayerCameraManager->ViewPitchMin;
 
     _myGameState = GetWorld() != nullptr ? GetWorld()->GetGameState<AGMS_MyGameStateBase>() : nullptr;
+
+    if (_inventoryWidgetClass) {
+		_inventoryWidget = CreateWidget<UUserWidget>(_playerController, _inventoryWidgetClass);
+        if (_inventoryWidget) {
+			_inventoryWidget->AddToViewport();
+			_inventoryWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
 }
 
 void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickType, FActorComponentTickFunction* thisTickFunction)
@@ -132,6 +150,12 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
                 // If we are holding an Item, we will call his rotate function.
                 if (Cast<IPickUpInterface>(_currentHandItem))
                     Cast<IPickUpInterface>(_currentHandItem)->RotateItem(_currentHandItem);
+
+                if (_currentHandItem->IsA<ANotes>() && !_myGameState->_keysHudWidget->IsInViewport() && !_bShowNoteHUDOnce) {
+                    _myGameState->_keysHudWidget->AddKeyToHorizontalBox(FText::FromString("E"), FText::FromString("Read"));
+                    _myGameState->_keysHudWidget->ShowHUD(3.f, true);
+                    _bShowNoteHUDOnce = true;
+                }
             }
         }
     } else {
@@ -306,10 +330,13 @@ void UInventoryComponent::InspectItem(const FInputActionValue& value)
 
                 _sophia->ToggleMovement(_bInspecting);
                 _lastRotation = _playerController->GetPawn()->GetControlRotation();
-                if (_myGameState->_hudWidget != nullptr) {
-                    _myGameState->_hudWidget->RemoveFromParent();
-                    _myGameState->_hudWidget = nullptr;
+               
+                if (_myGameState->_hudWidget && _inventoryWidget) {
+					_myGameState->_hudWidget->SetVisibility(ESlateVisibility::Visible);
+					_inventoryWidget->SetVisibility(ESlateVisibility::Visible);
                 }
+
+                _bShowNoteHUDOnce = false;
             } else {
                 _bInspecting = true;
             }
@@ -324,9 +351,10 @@ void UInventoryComponent::InspectItem(const FInputActionValue& value)
                 _playerController->SetControlRotation(_lastRotation);
                 _playerController->PlayerCameraManager->ViewPitchMax = _pitchMax;
                 _playerController->PlayerCameraManager->ViewPitchMin = _pitchMin;
-                if (_myGameState->_hudWidget == nullptr) {
-                    _myGameState->_hudWidget = CreateWidget<UUserWidget>(_playerController, _myGameState->_hudWidgetClass);
-                    _myGameState->_hudWidget->AddToViewport();
+               
+                if (_myGameState->_hudWidget && _inventoryWidget) {
+					_myGameState->_hudWidget->SetVisibility(ESlateVisibility::Hidden);
+					_inventoryWidget->SetVisibility(ESlateVisibility::Hidden);
                 }
             } else {
                 _bInspecting = false;

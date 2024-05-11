@@ -2,20 +2,18 @@
 
 #include "CoreMinimal.h"
 #include "../../Item.h"
-#include "../../../Interfaces/InteractiveInterface.h"
 #include "GramophoneShape.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class SOPHIASFAULT_API AGramophoneShape : public AItem, public IInteractiveInterface
+class SOPHIASFAULT_API AGramophoneShape : public AItem
 {
 	GENERATED_BODY()
 	
 public:
 	AGramophoneShape();
 
-	UFUNCTION(BlueprintCallable, Category = "Interaction")
-	virtual void UseInteraction(AItem* item) override;
+	void UseInteraction();
 };

@@ -20,7 +20,10 @@ public:
 	UPROPERTY(Transient, meta = (BindWidgetAnim), BlueprintReadWrite)
 	class UWidgetAnimation* _blendOut;
 
-	void AddKeyToHorizontalBox(FText key, FText textToShow, bool _bClearChildren = false, UKeysHUDHelper::EKeysHUDHelperImage image = UKeysHUDHelper::EKeysHUDHelperImage::KeyboardKey);
-	void ShowHUD(float time = -1.f);
+	bool _bClearChildren;
+
+	void AddKeyToHorizontalBox(FText key, FText textToShow, bool bClearChildren = false, UKeysHUDHelper::EKeysHUDHelperImage image = UKeysHUDHelper::EKeysHUDHelperImage::KeyboardKey);
+	void ShowHUD(float time = -1.f, bool bClearChildren = false);
 	void HideHUD(float time = -1.f);
+	void ClearChildrenFromBox();
 };

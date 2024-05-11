@@ -2,14 +2,14 @@
 
 #include "CoreMinimal.h"
 #include "../../Item.h"
-#include "../../../Interfaces/InteractiveInterface.h"
+#include "../../../Interfaces/ActorBlendInterface.h"
 #include "Gramophone.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class SOPHIASFAULT_API AGramophone : public AItem, public IInteractiveInterface
+class SOPHIASFAULT_API AGramophone : public AItem, public IActorBlendInterface
 {
 	GENERATED_BODY()
 	
@@ -41,9 +41,7 @@ public:
 	FKeyHandle _keyHandle;
 
 	void BeginPlay() override;
-
-	UFUNCTION(BlueprintCallable, Category = "Interaction")
-	virtual void UseInteraction(AItem* item) override;
+	void UseInteraction();
 
 	UFUNCTION()
 	void ControlGramophone();

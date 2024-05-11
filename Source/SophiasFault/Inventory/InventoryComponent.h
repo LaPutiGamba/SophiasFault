@@ -24,6 +24,10 @@ public:
 	class AGMS_MyGameStateBase* _myGameState;
 	class ASophia* _sophia;
 
+	TSubclassOf<class UUserWidget> _inventoryWidgetClass;
+	class UUserWidget* _inventoryWidget;
+	bool _bShowNoteHUDOnce;
+
 	float _pitchMax;
 	float _pitchMin;
 	FRotator _lastRotation;
