@@ -19,6 +19,9 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float deltaTime) override;
 
+	UPROPERTY(EditAnywhere, Category = "Audio")
+	FName _metasoundParameter;
+
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	bool _bUseOnce;
 

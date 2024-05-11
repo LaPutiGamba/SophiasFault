@@ -129,9 +129,13 @@ void AVectorAnimatedItem::UseInteraction(AItem* item)
 
 	if (!_bUseState) {
 		_timelineComponent->Play();
+		_soundComponent->SetIntParameter(_metasoundParameter, 0);
+		_soundComponent->Play();
 		_bUseState = true;
 	} else {
 		_timelineComponent->Reverse();
+		_soundComponent->SetIntParameter(_metasoundParameter, 1);
+		_soundComponent->Play();
 		_bUseState = false;
 	}
 }

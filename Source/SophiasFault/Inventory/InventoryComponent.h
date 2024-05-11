@@ -24,8 +24,6 @@ public:
 	class AGMS_MyGameStateBase* _myGameState;
 	class ASophia* _sophia;
 
-	TSubclassOf<class UUserWidget> _inventoryWidgetClass;
-	class UUserWidget* _inventoryWidget;
 	bool _bShowNoteHUDOnce;
 
 	float _pitchMax;
@@ -56,6 +54,7 @@ public:
 	bool _bHoldingItem;
 	bool _bInspecting;
 	bool _bInspectingPressed;
+	bool _bChangeFlashlightVisible;
 
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float deltaTime, enum ELevelTick tickType, FActorComponentTickFunction* thisTickFunction) override;

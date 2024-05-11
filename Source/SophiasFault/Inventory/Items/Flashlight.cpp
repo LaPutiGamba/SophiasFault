@@ -8,12 +8,15 @@
 #include "../../Macros.h"
 #include "../KeysHUDWidget.h"
 #include "Curves/CurveFloat.h"
+#include "Materials/MaterialParameterCollection.h" 
+#include "Kismet/KismetMathLibrary.h"
+#include "Kismet/KismetMaterialLibrary.h"
 
 AFlashlight::AFlashlight()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	_flashlight = nullptr;
+	_flashlightComponent = nullptr;
 	_flashlightIntensity = 0.f;
 	_flashlightIntensityMax = 5000.0f;
 	_bTurnedOn = false;
@@ -33,13 +36,13 @@ void AFlashlight::BeginPlay()
     _playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 	_sophia = Cast<ASophia>(_playerController->GetPawn());
 
-    _flashlight = _sophia->GetFlashlightComponent();
-	_flashlightIntensityMax = _flashlight->Intensity;
-	_flashlightIntensity = (_flashlight->Intensity - 2000.f) / (_flashlightMaxDuration * 0.8);
+    _flashlightComponent = _sophia->GetFlashlightComponent();
+	_flashlightIntensityMax = _flashlightComponent->Intensity;
+	_flashlightIntensity = (_flashlightComponent->Intensity - 2000.f) / (_flashlightMaxDuration * 0.8);
 	_flashlightTimer = _flashlightMaxDuration;
 
-    if (_flashlight != nullptr)
-        _flashlight->ToggleVisibility(false);
+    if (_flashlightComponent != nullptr)
+        _flashlightComponent->ToggleVisibility(false);
 
 	if (_curveFloat) {
 		_curveFloat->FloatCurve.UpdateOrAddKey(0.f, 0.f);
@@ -65,19 +68,19 @@ void AFlashlight::Tick(float deltaTime)
 			_flashlightTimer -= deltaTime;
 		} else {
 			_flashlightState = ST_NEEDRECHARGE;
-			_flashlight->SetVisibility(false);
+			_flashlightComponent->SetVisibility(false);
 			_flashlightTimer = _flashlightMaxDuration;
 			GetWorld()->GetTimerManager().ClearTimer(_intensityTimerHandle);
 		}
 
 		if (!_bTurnedOn) {
 			_flashlightState = ST_LIGHTOFF;
-			_flashlight->SetVisibility(false);
+			_flashlightComponent->SetVisibility(false);
 			GetWorld()->GetTimerManager().ClearTimer(_intensityTimerHandle);
 		}
 
 		if (_flashlightTimer < (_flashlightMaxDuration * 0.025))
-			_flashlight->SetLightFunctionMaterial(_flickerMaterial);
+			_flashlightComponent->SetLightFunctionMaterial(_flickerMaterial);
 
 		if (_bIsRechargingFlashlight) {
 			_flashlightState = ST_NEEDRECHARGE;
@@ -89,14 +92,14 @@ void AFlashlight::Tick(float deltaTime)
 			_flashlightState = ST_LIGHTON;
 
 			if (_flashlightTimer < (_flashlightMaxDuration * 0.025))
-				_flashlight->SetLightFunctionMaterial(_flickerMaterial);
+				_flashlightComponent->SetLightFunctionMaterial(_flickerMaterial);
 			else
-			_flashlight->SetLightFunctionMaterial(_flashlightMaterial);
+			_flashlightComponent->SetLightFunctionMaterial(_flashlightMaterial);
 			
-			_flashlight->SetVisibility(true);
+			_flashlightComponent->SetVisibility(true);
 
 			GetWorld()->GetTimerManager().SetTimer(_intensityTimerHandle, [this]() {
-				_flashlight->SetIntensity(_flashlight->Intensity - _flashlightIntensity);
+				_flashlightComponent->SetIntensity(_flashlightComponent->Intensity - _flashlightIntensity);
 			}, 1.f, true); 
 		}
 
@@ -107,26 +110,79 @@ void AFlashlight::Tick(float deltaTime)
 		if (_bIsRechargingFlashlight) {
 			_bTurnedOn = true;
 			_flashlightState = ST_LIGHTON;
-			_flashlight->SetLightFunctionMaterial(_flashlightMaterial);
-			_flashlight->SetVisibility(true);
+			_flashlightComponent->SetLightFunctionMaterial(_flashlightMaterial);
+			_flashlightComponent->SetVisibility(true);
 
 			_bIsRechargingFlashlight = false;
 
-			_flashlight->SetIntensity(_flashlightIntensityMax);
+			_flashlightComponent->SetIntensity(_flashlightIntensityMax);
 			GetWorld()->GetTimerManager().SetTimer(_intensityTimerHandle, [this]() {
-				_flashlight->SetIntensity(_flashlight->Intensity - _flashlightIntensity);
+				_flashlightComponent->SetIntensity(_flashlightComponent->Intensity - _flashlightIntensity);
 			}, 1.f, true); 
 		}
 		break;
 	default:
 		break;
+	} 
+
+	if (_bTurnedOn && _flashlightComponent->LightColor != FColor(255, 255, 255, 255)) {
+		FVector locationVector = _flashlightComponent->GetComponentLocation();
+		FVector forwardVector = _flashlightComponent->GetForwardVector();
+		forwardVector = -forwardVector;
+
+		if (_flashlightComponent->LightColor == FColor(0, 0, 255, 255)) {
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("BlueLocation"), UKismetMathLibrary::Conv_VectorToLinearColor(locationVector));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("BlueDirection"), UKismetMathLibrary::Conv_VectorToLinearColor(forwardVector));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("RedLocation"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("RedDirection"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("YellowLocation"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("YellowDirection"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("GreenLocation"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("GreenDirection"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+		} else if (_flashlightComponent->LightColor == FColor(255, 0, 0, 255)) {
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("RedLocation"), UKismetMathLibrary::Conv_VectorToLinearColor(locationVector));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("RedDirection"), UKismetMathLibrary::Conv_VectorToLinearColor(forwardVector));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("BlueLocation"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("BlueDirection"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("YellowLocation"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("YellowDirection"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("GreenLocation"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("GreenDirection"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+		} else if (_flashlightComponent->LightColor == FColor(255, 255, 0, 255)) {
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("YellowLocation"), UKismetMathLibrary::Conv_VectorToLinearColor(locationVector));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("YellowDirection"), UKismetMathLibrary::Conv_VectorToLinearColor(forwardVector));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("BlueLocation"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("BlueDirection"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("RedLocation"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("RedDirection"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("GreenLocation"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("GreenDirection"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+		} else if (_flashlightComponent->LightColor == FColor(0, 255, 0, 255)) {
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("GreenLocation"), UKismetMathLibrary::Conv_VectorToLinearColor(locationVector));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("GreenDirection"), UKismetMathLibrary::Conv_VectorToLinearColor(forwardVector));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("BlueLocation"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("BlueDirection"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("RedLocation"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("RedDirection"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("YellowLocation"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+			UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("YellowDirection"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+		}
+	} else {
+		UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("BlueLocation"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+		UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("BlueDirection"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+		UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("RedLocation"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+		UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("RedDirection"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+		UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("YellowLocation"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+		UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("YellowDirection"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+		UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("GreenLocation"), FLinearColor(0.f, 0.f, 0.f, 0.f));
+		UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), _parameterCollection, FName("GreenDirection"), FLinearColor(0.f, 0.f, 0.f, 0.f));
 	}
 }
 
 void AFlashlight::ToggleFlashlightOn()
 {
 	_bTurnedOn = !_bTurnedOn;
-	_flashlight->ToggleVisibility();
+	_flashlightComponent->ToggleVisibility();
 }
 
 void AFlashlight::UseFlashlight(const FInputActionValue& value)
@@ -184,7 +240,7 @@ void AFlashlight::FinishRechargeFlashlight()
 
 void AFlashlight::PickUpItem(AItem* item)
 {
-	if (_myGameState->_bStairPositioned) {
+	if (_myGameState->_bStairPositioned && _sophia->GetActorLocation().Z > 540.f) {
 		IPickUpInterface::PickUpItem(this);
 
 		_myGameState->_keysHudWidget->AddKeyToHorizontalBox(FText::FromString("F"), FText::FromString("Toggle flashlight"), true, UKeysHUDHelper::EKeysHUDHelperImage::KeyboardKey);

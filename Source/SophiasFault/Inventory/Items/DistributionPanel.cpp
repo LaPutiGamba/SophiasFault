@@ -18,9 +18,11 @@ void ADistributionPanel::UseInteraction(AItem* item)
 
 		_soundComponent->Play();
 
-		for (auto light : _lights) {
+		for (auto light : _lights)
 			light->GetLightComponent()->SetVisibility(false);
-		}
+
+		_sophiaLight->GetLightComponent()->SetLightColor(FLinearColor(1.f, 1.f, 1.f, 1.f));
+		_sophiaLight->GetLightComponent()->SetLightFunctionMaterial(nullptr);
 
 		if (_junkRoomDoor != nullptr) 
 			_junkRoomDoor->_bDoorLocked = false;

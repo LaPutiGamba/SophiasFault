@@ -151,7 +151,7 @@ void ALadder::UseInteraction(AItem* item)
 	if (_bIsUp && !_timelineComponent->IsPlaying()) {
 		SetInitialKeys(0.f);
 		_bIsUp = false;
-			
+
 		_curveVectorRotation->FloatCurves[2].UpdateOrAddKey(0.f, _sophia->GetActorRotation().Yaw);
 		_timelineComponent->PlayFromStart();
 	} else if (!_bIsUp && !_timelineComponent->IsPlaying()) {

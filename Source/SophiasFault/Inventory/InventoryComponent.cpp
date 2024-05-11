@@ -10,6 +10,7 @@
 #include "../Interfaces/OnActionInterface.h"
 #include "../Interfaces/ActorBlendInterface.h"
 #include "../Core/GMS_MyGameStateBase.h"
+#include "Components/SpotLightComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "Items/Notes.h"
 #include "KeysHUDWidget.h"
@@ -24,6 +25,7 @@ UInventoryComponent::UInventoryComponent()
     _bHoldingItem = false;
     _bInspecting = false;
     _bInspectingPressed = false;
+	_bChangeFlashlightVisible = false;
 
 	_currentItemSlotIndex = 0;
     _currentItemInSight = nullptr;
@@ -32,12 +34,6 @@ UInventoryComponent::UInventoryComponent()
 	_currentHandItem = nullptr;
 	_cameraComponent = nullptr;
 	_holdingComponent = nullptr;
-
-    ConstructorHelpers::FClassFinder<UUserWidget> inventoryFinderClass(TEXT("/Game/Items/Widgets/WBP_InventoryBackground"));
-    if (inventoryFinderClass.Succeeded())
-        _inventoryWidgetClass = inventoryFinderClass.Class;
-    else
-        _inventoryWidgetClass = nullptr;
 
     _bShowNoteHUDOnce = false;
 }
@@ -64,14 +60,6 @@ void UInventoryComponent::BeginPlay()
         _pitchMin = _playerController->PlayerCameraManager->ViewPitchMin;
 
     _myGameState = GetWorld() != nullptr ? GetWorld()->GetGameState<AGMS_MyGameStateBase>() : nullptr;
-
-    if (_inventoryWidgetClass) {
-		_inventoryWidget = CreateWidget<UUserWidget>(_playerController, _inventoryWidgetClass);
-        if (_inventoryWidget) {
-			_inventoryWidget->AddToViewport();
-			_inventoryWidget->SetVisibility(ESlateVisibility::Hidden);
-		}
-	}
 }
 
 void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickType, FActorComponentTickFunction* thisTickFunction)
@@ -94,6 +82,7 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
 
             if (_myGameState->_hudWidget != nullptr) {
                 _myGameState->_hudWidget->GetWidgetFromName("NoVisibleItem")->SetVisibility(ESlateVisibility::Hidden);
+                _myGameState->_hudWidget->GetWidgetFromName("PickUpItem")->SetVisibility(ESlateVisibility::Hidden);
                 _myGameState->_hudWidget->GetWidgetFromName("VisibleItem")->SetVisibility(ESlateVisibility::Visible);
             }
 
@@ -106,7 +95,14 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
 
             if (_myGameState->_hudWidget != nullptr) {
                 _myGameState->_hudWidget->GetWidgetFromName("NoVisibleItem")->SetVisibility(ESlateVisibility::Hidden);
-                _myGameState->_hudWidget->GetWidgetFromName("VisibleItem")->SetVisibility(ESlateVisibility::Visible);
+
+                if (_hit.GetActor()->GetClass()->ImplementsInterface(UPickUpInterface::StaticClass())) {
+					_myGameState->_hudWidget->GetWidgetFromName("PickUpItem")->SetVisibility(ESlateVisibility::Visible);
+					_myGameState->_hudWidget->GetWidgetFromName("VisibleItem")->SetVisibility(ESlateVisibility::Hidden);
+				} else {
+					_myGameState->_hudWidget->GetWidgetFromName("PickUpItem")->SetVisibility(ESlateVisibility::Hidden);
+					_myGameState->_hudWidget->GetWidgetFromName("VisibleItem")->SetVisibility(ESlateVisibility::Visible);
+				}
             }
 
         // If the player doesn't has in sight any item, all the items are null.
@@ -118,6 +114,7 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
             if (_myGameState->_hudWidget != nullptr) {
                 _myGameState->_hudWidget->GetWidgetFromName("NoVisibleItem")->SetVisibility(ESlateVisibility::Visible);
                 _myGameState->_hudWidget->GetWidgetFromName("VisibleItem")->SetVisibility(ESlateVisibility::Hidden);
+				_myGameState->_hudWidget->GetWidgetFromName("PickUpItem")->SetVisibility(ESlateVisibility::Hidden);
             }
         }
     // If the player doesn't has in sight any item, all the items are null
@@ -129,6 +126,7 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
         if (_myGameState->_hudWidget != nullptr) {
             _myGameState->_hudWidget->GetWidgetFromName("NoVisibleItem")->SetVisibility(ESlateVisibility::Visible);
             _myGameState->_hudWidget->GetWidgetFromName("VisibleItem")->SetVisibility(ESlateVisibility::Hidden);
+			_myGameState->_hudWidget->GetWidgetFromName("PickUpItem")->SetVisibility(ESlateVisibility::Hidden);
         }
     }
 
@@ -228,17 +226,17 @@ bool UInventoryComponent::RemoveItem(AItem* item, bool deleteCurrentHandItem)
         // Order the items in the inventory
 		for (int i = 0; i < _capacity; i++) {
 			if (_items[i] == nullptr) {
-				for (int j = i + 1; j < _capacity; j++) {
-					if (_items[j] != nullptr) {
-						_items[i] = _items[j];
-						_items[j] = nullptr;
-						break;
-					}
-				}
-			}
-		}
+                for (int j = i + 1; j < _capacity; j++) {
+                    if (_items[j] != nullptr) {
+                        _items[i] = _items[j];
+                        _items[j] = nullptr;
+                        break;
+                    }
+                }
+            }
+        }
 
-		_onInventoryUpdated.Broadcast();
+        _onInventoryUpdated.Broadcast();
 
         _bHoldingItem = !_bHoldingItem;
 
@@ -247,18 +245,18 @@ bool UInventoryComponent::RemoveItem(AItem* item, bool deleteCurrentHandItem)
             _holdingComponent->SetStaticMesh(nullptr);
         }
 
-		_currentItemSlotIndex = 0;
-		if (_items[_currentItemSlotIndex] != nullptr) {
-			_currentHandItem = _items[_currentItemSlotIndex];
-			_currentHandItem->SetActorHiddenInGame(false);
-			_holdingComponent->SetStaticMesh(_currentHandItem->_meshComponent->GetStaticMesh());
-			_bHoldingItem = true;
-		}
+        _currentItemSlotIndex = 0;
+        if (_items[_currentItemSlotIndex] != nullptr) {
+            _currentHandItem = _items[_currentItemSlotIndex];
+            _currentHandItem->SetActorHiddenInGame(false);
+            _holdingComponent->SetStaticMesh(_currentHandItem->_meshComponent->GetStaticMesh());
+            _bHoldingItem = true;
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
 void UInventoryComponent::ChangeCurrentHandItem(const FInputActionValue& value, int index)
@@ -272,28 +270,30 @@ void UInventoryComponent::ChangeCurrentHandItem(const FInputActionValue& value, 
         _currentHandItem->SetActorHiddenInGame(true);
         _holdingComponent->SetStaticMesh(nullptr);
 
-		if (_currentHandItem->IsA(AFlashlight::StaticClass())) {
-			_flashlightCrankComponent->SetVisibility(false);
-			_flashlightCrankHandleComponent->SetVisibility(false);
-		}
+        if (_currentHandItem->IsA(AFlashlight::StaticClass())) {
+            _flashlightCrankComponent->SetVisibility(false);
+            _flashlightCrankHandleComponent->SetVisibility(false);
+        }
     }
 
     // Check if the input is from a number key (0-9)
     if (index >= 0 && index <= 9) {
         if (_items[index] != nullptr)
             _currentItemSlotIndex = index;
-    // Check if the input is from the mouse wheel axis
-    } else {
+        // Check if the input is from the mouse wheel axis
+    }
+    else {
         float mouseAxis = value.Get<float>();
 
         if (mouseAxis > 0.f) {
             if ((_currentItemSlotIndex < 9)) {
                 if (_items[_currentItemSlotIndex + 1] != nullptr)
-					_currentItemSlotIndex++;
+                    _currentItemSlotIndex++;
             }
-        } else if (mouseAxis < 0.f) {
+        }
+        else if (mouseAxis < 0.f) {
             if ((_currentItemSlotIndex > 0)) {
-				if (_items[_currentItemSlotIndex - 1] != nullptr)
+                if (_items[_currentItemSlotIndex - 1] != nullptr)
                     _currentItemSlotIndex--;
             }
         }
@@ -308,10 +308,10 @@ void UInventoryComponent::ChangeCurrentHandItem(const FInputActionValue& value, 
         _bHoldingItem = true;
 
         if (_currentHandItem->IsA(AFlashlight::StaticClass())) {
-			_flashlightCrankComponent->SetVisibility(true);
-			_flashlightCrankHandleComponent->SetVisibility(true);
+            _flashlightCrankComponent->SetVisibility(true);
+            _flashlightCrankHandleComponent->SetVisibility(true);
         }
-    } 
+    }
 }
 
 void UInventoryComponent::InspectItem(const FInputActionValue& value)
@@ -328,13 +328,16 @@ void UInventoryComponent::InspectItem(const FInputActionValue& value)
                     subsystem->AddMappingContext(_sophia->GetInspectMappingContext(), 0);
                 }
 
+                if (_sophia->GetFlashlightComponent()->IsVisible()) {
+                    _sophia->GetFlashlightComponent()->SetVisibility(false);
+					_bChangeFlashlightVisible = true;
+                }
+
                 _sophia->ToggleMovement(_bInspecting);
                 _lastRotation = _playerController->GetPawn()->GetControlRotation();
                
-                if (_myGameState->_hudWidget && _inventoryWidget) {
-					_myGameState->_hudWidget->SetVisibility(ESlateVisibility::Visible);
-					_inventoryWidget->SetVisibility(ESlateVisibility::Visible);
-                }
+                if (_myGameState->_hudWidget)
+					_myGameState->_hudWidget->SetVisibility(ESlateVisibility::Hidden);
 
                 _bShowNoteHUDOnce = false;
             } else {
@@ -347,15 +350,18 @@ void UInventoryComponent::InspectItem(const FInputActionValue& value)
                     subsystem->AddMappingContext(_sophia->GetMainMappingContext(), 0);
                 }
 
+                if (!_sophia->GetFlashlightComponent()->IsVisible() && _bChangeFlashlightVisible) {
+                    _sophia->GetFlashlightComponent()->SetVisibility(true);
+					_bChangeFlashlightVisible = false;
+				}
+
                 _sophia->ToggleMovement(_bInspecting);
                 _playerController->SetControlRotation(_lastRotation);
                 _playerController->PlayerCameraManager->ViewPitchMax = _pitchMax;
                 _playerController->PlayerCameraManager->ViewPitchMin = _pitchMin;
                
-                if (_myGameState->_hudWidget && _inventoryWidget) {
-					_myGameState->_hudWidget->SetVisibility(ESlateVisibility::Hidden);
-					_inventoryWidget->SetVisibility(ESlateVisibility::Hidden);
-                }
+                if (_myGameState->_hudWidget) 
+					_myGameState->_hudWidget->SetVisibility(ESlateVisibility::Visible);
             } else {
                 _bInspecting = false;
             }

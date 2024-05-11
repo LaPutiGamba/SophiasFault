@@ -220,6 +220,8 @@ public:
 	UInputMappingContext* GetMainMappingContext() { return _mainMappingContext; }
 	UInputMappingContext* GetInspectMappingContext() { return _inspectMappingContext; }
 
+	class UAudioComponent* GetFootstepsSoundComponent() { return _footstepsSoundComponent; }
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

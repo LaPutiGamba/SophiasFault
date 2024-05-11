@@ -17,7 +17,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Movement/View variables", meta = (ClampMin = "0.01", ClampMax = "1000"))
 	float _flashlightMaxDuration;
 
-	class USpotLightComponent* _flashlight;
 	bool _bIsRechargingFlashlight;
 	float _flashlightTimer;
 	FLASHLIGHT_STATE _flashlightState;
@@ -30,6 +29,9 @@ protected:
 	UMaterial* _flashlightMaterial;
 	UPROPERTY(EditAnywhere, Category = "Materials")
 	UMaterial* _flickerMaterial;
+
+	UPROPERTY(EditAnywhere, Category = "Materials")
+	UMaterialParameterCollection* _parameterCollection;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputAction* _flashlightAction;
@@ -54,6 +56,7 @@ protected:
 	class ASophia* _sophia;
 
 public:
+	class USpotLightComponent* _flashlightComponent;
 	bool _bTurnedOn;
 
 	AFlashlight();

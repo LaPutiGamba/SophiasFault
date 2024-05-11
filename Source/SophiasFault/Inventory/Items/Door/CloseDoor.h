@@ -21,6 +21,9 @@ public:
 
 	class UCurveFloat* _curveFloatTemp;
 
+	UPROPERTY(EditAnywhere, Category = "Camera")
+	TSubclassOf<class UCameraShakeBase> _shakeDoor;
+
 	virtual void SetState() override;
 	virtual void OnTriggerStart() override;
 };

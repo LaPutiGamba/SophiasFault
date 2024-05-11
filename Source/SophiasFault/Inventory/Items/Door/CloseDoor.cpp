@@ -1,4 +1,5 @@
 #include "CloseDoor.h"
+#include "Kismet/GameplayStatics.h"
 
 ACloseDoor::ACloseDoor()
 {
@@ -32,7 +33,12 @@ void ACloseDoor::OnTriggerStart()
 				_bClosingDoorAnim = true;
 
 				_soundComponent->SetIntParameter("Door State", 3);
+				_soundComponent->SetVolumeMultiplier(3.0f);
 				_soundComponent->Play();
+
+				// Play camera shake
+				if (_shakeDoor)
+					UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0)->StartCameraShake(_shakeDoor, 1.0f);
 			}
 		}, 0.5f, false);
 	}

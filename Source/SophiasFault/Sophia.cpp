@@ -165,13 +165,13 @@ void ASophia::Tick(float deltaTime)
 		}
 
 		if (_bIsRunning) {
-			_speed = 0.5f;
+			_speed = 0.4f;
 
 			if (_staminaTimer < _staminaMax) {
 				_staminaTimer += deltaTime;
 			} else {
 				_staminaStatus = ST_EXHAUSTED;
-				_speed = 0.3f;
+				_speed = 0.25f;
 				_breathSoundComponent->SetIntParameter("Breath Sound", 0);
 				_breathSoundComponent->Play();
 			}
@@ -179,7 +179,7 @@ void ASophia::Tick(float deltaTime)
 			_speed = 0.15f;
 		} else {
 			_staminaStatus = ST_IDLE;
-			_speed = 0.3f;
+			_speed = 0.25f;
 		}
 		break;
 	case ST_EXHAUSTED:
@@ -204,13 +204,13 @@ void ASophia::Tick(float deltaTime)
 				if (_bIsRunning) 
 					_staminaStatus = ST_RUNNING;
 				else 
-					_speed = 0.3f;
+					_speed = 0.25f;
 			}
 		} else {
 			if (_bIsRunning)
 				_staminaStatus = ST_RUNNING;
 			else 
-				_speed = 0.3f;
+				_speed = 0.25f;
 		}
 		break;
 	default:
@@ -223,14 +223,14 @@ void ASophia::Tick(float deltaTime)
 		
 		if (_footstepsSoundComponent->IsPlaying())
 			_footstepsSoundComponent->Stop();
-	} else if (_speed == 0.3f) {
+	} else if (_speed == 0.25f) {
 		_playerController->ClientStartCameraShake(_shakeWalk, 1.f);
 
 		if (!_footstepsSoundComponent->IsPlaying()) {
 			_footstepsSoundComponent->SetFloatParameter("InputBPM", 100.f);
 			_footstepsSoundComponent->Play();
 		}
-	} else if (_speed == 0.5f) {
+	} else if (_speed == 0.4f) {
 		_playerController->ClientStartCameraShake(_shakeRun, 1.f);
 
 		if (!_footstepsSoundComponent->IsPlaying()) {
