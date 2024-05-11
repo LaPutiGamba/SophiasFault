@@ -36,7 +36,7 @@ void AFrecuencyMeter::ChangeFrequency(const FInputActionValue& value)
             AddActorLocalRotation(FRotator(1.f, 0.f, 0.f));
 
             if (_needleActor != nullptr)
-                _needleActor->AddActorLocalOffset(FVector(-0.1f, 0.f, 0.f));
+                _needleActor->AddActorLocalOffset(FVector(-0.075f, 0.f, 0.f));
         }
     } else if (mouseAxis < 0.f) {
         if (_currentFrequency > 88.1f) {
@@ -45,7 +45,7 @@ void AFrecuencyMeter::ChangeFrequency(const FInputActionValue& value)
             AddActorLocalRotation(FRotator(-1.f, 0.f, 0.f));
 
             if (_needleActor != nullptr)
-                _needleActor->AddActorLocalOffset(FVector(0.1f, 0.f, 0.f));
+                _needleActor->AddActorLocalOffset(FVector(0.075f, 0.f, 0.f));
         }
     }
 
