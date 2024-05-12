@@ -27,6 +27,6 @@ void ADistributionPanel::UseInteraction(AItem* item)
 		if (_junkRoomDoor != nullptr) 
 			_junkRoomDoor->_bDoorLocked = false;
 	} else if (!_myGameState->_bStairPositioned) {
-		_myGameState->_dialogueWidget->SetDialogueTextAndShow(FText::FromString("Debería encontrar algo que ilumine antes de apagar las luces de emergencia."), 3.5f);
+		_myGameState->_dialogueWidget->SetDialogueTextAndShow(FText::FromString("Deberia encontrar algo que ilumine antes de apagar las luces de emergencia."), 3.5f);
 	}
 }

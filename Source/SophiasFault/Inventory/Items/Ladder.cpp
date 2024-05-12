@@ -154,11 +154,27 @@ void ALadder::UseInteraction(AItem* item)
 
 		_curveVectorRotation->FloatCurves[2].UpdateOrAddKey(0.f, _sophia->GetActorRotation().Yaw);
 		_timelineComponent->PlayFromStart();
+
+		FTimerHandle ladderHandle;
+		GetWorld()->GetTimerManager().SetTimer(ladderHandle, [this]() {
+			if (_metaSound) {
+				_soundComponent->SetSound(_metaSound);
+				_soundComponent->Play();
+			}
+		}, 1.7f, false);
 	} else if (!_bIsUp && !_timelineComponent->IsPlaying()) {
 		SetInitialKeys(10.7f);
 		_bIsUp = true;
 
 		_curveVectorRotation->FloatCurves[2].UpdateOrAddKey(0.f, 180.f);
 		_timelineComponent->Reverse();
+
+		FTimerHandle ladderHandle;
+		GetWorld()->GetTimerManager().SetTimer(ladderHandle, [this]() {
+			if (_interactSound) {
+				_soundComponent->SetSound(_interactSound);
+				_soundComponent->Play();
+			}
+		}, 1.f, false);
 	}
 }

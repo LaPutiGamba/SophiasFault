@@ -21,6 +21,7 @@ public:
 	class UWidgetAnimation* _blendOut;
 
 	bool _bClearChildren;
+	void SetClearChildren(bool bClearChildren) { _bClearChildren = bClearChildren; }
 
 	void AddKeyToHorizontalBox(FText key, FText textToShow, bool bClearChildren = false, UKeysHUDHelper::EKeysHUDHelperImage image = UKeysHUDHelper::EKeysHUDHelperImage::KeyboardKey);
 	void ShowHUD(float time = -1.f, bool bClearChildren = false);

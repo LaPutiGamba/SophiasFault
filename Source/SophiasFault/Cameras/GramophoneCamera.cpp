@@ -18,7 +18,7 @@ void AGramophoneCamera::UseInteraction(ACameraBlend* item)
 		_playerController->SetInputMode(FInputModeGameAndUI());
 
 		_playerController->bShowMouseCursor = true;
-		_myGameState->_keysHudWidget->AddKeyToHorizontalBox(FText::GetEmpty(), FText::FromString("Rotate"), false, UKeysHUDHelper::EKeysHUDHelperImage::MouseLeft);
+		_myGameState->_keysHudWidget->AddKeyToHorizontalBox(FText::GetEmpty(), FText::FromString("Rotate / Play"), false, UKeysHUDHelper::EKeysHUDHelperImage::MouseLeft);
 		_myGameState->_keysHudWidget->ShowHUD();
 
 		if (_enhancedInputComponent) {
@@ -37,6 +37,8 @@ void AGramophoneCamera::BlendBack()
 		_enhancedInputComponent->RemoveBinding(*_interactHandle);
 
 	if (_myGameState->_keysHudWidget != nullptr) {
+		_myGameState->_keysHudWidget->SetClearChildren(true);
+		_myGameState->_keysHudWidget->ClearChildrenFromBox();
 		_myGameState->_keysHudWidget->RemoveFromParent();
 	}
 }

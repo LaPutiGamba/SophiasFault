@@ -19,6 +19,11 @@ public:
 	FName _cameraTag;
 
 	UPROPERTY(EditAnywhere, Category = "Padlock")
+	class ADoor* _doorToUnlock;
+	UPROPERTY(EditAnywhere, Category = "Padlock")
+	class ADoor* _doorToUnlock2;
+
+	UPROPERTY(EditAnywhere, Category = "Padlock")
 	class APadlockNumber* _firstNumber;
 	UPROPERTY(EditAnywhere, Category = "Padlock")
 	class APadlockNumber* _secondNumber;

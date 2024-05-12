@@ -150,7 +150,7 @@ void UInventoryComponent::TickComponent(float deltaTime, enum ELevelTick tickTyp
                     Cast<IPickUpInterface>(_currentHandItem)->RotateItem(_currentHandItem);
 
                 if (_currentHandItem->IsA<ANotes>() && !_myGameState->_keysHudWidget->IsInViewport() && !_bShowNoteHUDOnce) {
-                    _myGameState->_keysHudWidget->AddKeyToHorizontalBox(FText::FromString("E"), FText::FromString("Read"));
+                    _myGameState->_keysHudWidget->AddKeyToHorizontalBox(FText::FromString("E"), FText::FromString("Read"), true);
                     _myGameState->_keysHudWidget->ShowHUD(3.f, true);
                     _bShowNoteHUDOnce = true;
                 }
