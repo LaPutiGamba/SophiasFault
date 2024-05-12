@@ -139,9 +139,9 @@ void ALadder::SetGameState(bool bState)
 	}
 
 	_sophia->GetCapsuleComponent()->SetCollisionEnabled(bState ? ECollisionEnabled::QueryAndPhysics : ECollisionEnabled::NoCollision);
+	_sophia->GetCapsuleComponent()->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));
 
-	if (_myGameState->_hudWidget)
-		_myGameState->_hudWidget->SetVisibility(bState ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+	_myGameState->_hudWidget->SetVisibility(bState ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
 }
 
 void ALadder::UseInteraction(AItem* item)
