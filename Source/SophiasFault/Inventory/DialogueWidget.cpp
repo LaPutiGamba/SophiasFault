@@ -1,5 +1,6 @@
 #include "DialogueWidget.h"
 #include "Components/TextBlock.h"
+#include "Animation/WidgetAnimation.h"
 
 void UDialogueWidget::SetDialogueTextAndShow(FText text, float time)
 {

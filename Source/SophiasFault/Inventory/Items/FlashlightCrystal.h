@@ -22,7 +22,7 @@ public:
 
 
 	UPROPERTY(EditAnywhere, Category = "Flashlight")
-	AFlashlight* _flashlight;
+	class AFlashlight* _flashlight;
 
 	void OnAction() override;
 };

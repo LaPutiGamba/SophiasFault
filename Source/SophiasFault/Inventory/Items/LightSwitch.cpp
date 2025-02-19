@@ -1,6 +1,7 @@
 #include "LightSwitch.h"
 #include "Components/PointLightComponent.h" 
 #include "Curves/CurveFloat.h"
+#include "Engine/Light.h"
 
 ALightSwitch::ALightSwitch()
 {

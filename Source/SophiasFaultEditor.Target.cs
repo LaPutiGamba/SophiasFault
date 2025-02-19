@@ -8,7 +8,7 @@ public class SophiasFaultEditorTarget : TargetRules
 	public SophiasFaultEditorTarget( TargetInfo Target) : base(Target)
 	{
 		Type = TargetType.Editor;
-		DefaultBuildSettings = BuildSettingsVersion.V2;
+		DefaultBuildSettings = BuildSettingsVersion.Latest;
 		ExtraModuleNames.Add("SophiasFault");
 	}
 }

@@ -52,7 +52,7 @@ void AEarthBallCamera::BlendBack()
 	}
 
 	FVector2D screenPosition;
-	FVector worldLocation;
+	FVector worldLocation = FVector(0.f, 0.f, 0.f);
 	_playerController->ProjectWorldLocationToScreen(worldLocation, screenPosition);
 
 	UActorComponent* boxComponent;

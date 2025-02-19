@@ -1,5 +1,6 @@
 #include "FlashlightCrystal.h"
 #include "Flashlight.h"
+#include "Components/SpotLightComponent.h"
 
 AFlashlightCrystal::AFlashlightCrystal()
 {
